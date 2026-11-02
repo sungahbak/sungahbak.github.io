@@ -1,0 +1,211 @@
+{%- comment -%}
+  글을 쓴 날을 1년치 격자로 보여준다. GitHub 기여도 그래프와 달리
+  API 토큰이 필요 없고, site.posts 만으로 빌드 타임에 계산된다.
+  _tabs/about.md 등 아무 페이지에서 {% include post-heatmap.html %} 로 호출.
+{%- endcomment -%}
+
+{%- assign WEEKS = 52 -%}
+{%- assign DAY = 86400 -%}
+
+{%- comment -%} 오늘 자정(사이트 타임존 기준) epoch {%- endcomment -%}
+{%- assign today_str = site.time | date: '%Y-%m-%d' -%}
+{%- assign today_ts = today_str | date: '%s' | plus: 0 -%}
+
+{%- comment -%} 격자의 시작은 52주 전 주의 일요일 {%- endcomment -%}
+{%- assign wday = site.time | date: '%w' | plus: 0 -%}
+{%- assign back_days = WEEKS | times: 7 | plus: wday -%}
+{%- assign back_secs = back_days | times: DAY -%}
+{%- assign start_ts = today_ts | minus: back_secs -%}
+
+{%- comment -%} 날짜별 글 수 {%- endcomment -%}
+{%- assign by_day = site.posts | group_by_exp: "p", "p.date | date: '%Y-%m-%d'" -%}
+
+{%- assign total_cells = WEEKS | plus: 1 | times: 7 -%}
+{%- assign last_index = total_cells | minus: 1 -%}
+{%- assign year_count = 0 -%}
+
+<div class="bh">
+  <div class="bh-head">
+    <span class="bh-title">브로콜리 심은 날</span>
+    <span class="bh-legend">
+      적음
+      <i class="bh-cell bh-l0"></i><i class="bh-cell bh-l1"></i><i class="bh-cell bh-l2"></i><i class="bh-cell bh-l3"></i><i class="bh-cell bh-l4"></i>
+      많음
+    </span>
+  </div>
+
+  <div class="bh-scroll">
+    <div class="bh-inner">
+      <div class="bh-months">
+        {%- assign prev_month = "" -%}
+        {%- for w in (0..WEEKS) -%}
+          {%- assign off = w | times: 7 | times: DAY -%}
+          {%- assign wts = start_ts | plus: off -%}
+          {%- assign m = wts | date: '%-m' -%}
+          {%- if m != prev_month -%}
+            {%- assign col = w | plus: 1 -%}
+            <span class="bh-month" style="grid-column:{{ col }}">{{ m }}월</span>
+            {%- assign prev_month = m -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      <div class="bh-body">
+        <div class="bh-wdays">
+          <span style="grid-row:2">월</span>
+          <span style="grid-row:4">수</span>
+          <span style="grid-row:6">금</span>
+        </div>
+
+        <div class="bh-grid">
+          {%- for i in (0..last_index) -%}
+            {%- assign off = i | times: DAY -%}
+            {%- assign ts = start_ts | plus: off -%}
+            {%- if ts > today_ts -%}
+              <i class="bh-cell bh-future"></i>
+            {%- else -%}
+              {%- assign d = ts | date: '%Y-%m-%d' -%}
+              {%- assign hit = by_day | where: "name", d -%}
+              {%- if hit.size > 0 -%}
+                {%- assign n = hit[0].items | size -%}
+              {%- else -%}
+                {%- assign n = 0 -%}
+              {%- endif -%}
+              {%- assign year_count = year_count | plus: n -%}
+              {%- if n == 0 -%}{%- assign lv = 0 -%}
+              {%- elsif n == 1 -%}{%- assign lv = 1 -%}
+              {%- elsif n == 2 -%}{%- assign lv = 2 -%}
+              {%- elsif n == 3 -%}{%- assign lv = 3 -%}
+              {%- else -%}{%- assign lv = 4 -%}
+              {%- endif -%}
+              <i class="bh-cell bh-l{{ lv }}" title="{{ d }} · 글 {{ n }}편"></i>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p class="bh-foot">최근 1년 {{ year_count }}편 · 전체 {{ site.posts | size }}편</p>
+</div>
+
+<style>
+  .bh {
+    --bh-gap: 3px;
+    --bh-size: 11px;
+    --bh-l0: #ebedf0;
+    --bh-l1: #c6e6a8;
+    --bh-l2: #8fcf5f;
+    --bh-l3: #52a32a;
+    --bh-l4: #2f6b14;
+    --bh-label: #6a737d;
+    margin: 1.5rem 0 2rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    html:not([data-mode]) .bh,
+    html[data-mode='dark'] .bh {
+      --bh-l0: #2c3137;
+      --bh-l1: #2d4a1c;
+      --bh-l2: #44762c;
+      --bh-l3: #6aad42;
+      --bh-l4: #9ad96a;
+      --bh-label: #8b949e;
+    }
+  }
+
+  html[data-mode='dark'] .bh {
+    --bh-l0: #2c3137;
+    --bh-l1: #2d4a1c;
+    --bh-l2: #44762c;
+    --bh-l3: #6aad42;
+    --bh-l4: #9ad96a;
+    --bh-label: #8b949e;
+  }
+
+  .bh-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .bh-title {
+    font-weight: 600;
+  }
+
+  .bh-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--bh-gap);
+    font-size: 0.75rem;
+    color: var(--bh-label);
+  }
+
+  .bh-scroll {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .bh-inner {
+    min-width: max-content;
+  }
+
+  .bh-cell {
+    display: block;
+    width: var(--bh-size);
+    height: var(--bh-size);
+    border-radius: 2px;
+    background: var(--bh-l0);
+  }
+
+  .bh-l0 { background: var(--bh-l0); }
+  .bh-l1 { background: var(--bh-l1); }
+  .bh-l2 { background: var(--bh-l2); }
+  .bh-l3 { background: var(--bh-l3); }
+  .bh-l4 { background: var(--bh-l4); }
+  .bh-future { background: transparent; }
+
+  .bh-months {
+    display: grid;
+    grid-template-columns: repeat(53, calc(var(--bh-size) + var(--bh-gap)));
+    margin-left: calc(var(--bh-size) + var(--bh-gap) + 8px);
+    font-size: 0.7rem;
+    color: var(--bh-label);
+    height: 1.1rem;
+  }
+
+  .bh-month {
+    white-space: nowrap;
+  }
+
+  .bh-body {
+    display: flex;
+    gap: 8px;
+  }
+
+  .bh-wdays {
+    display: grid;
+    grid-template-rows: repeat(7, var(--bh-size));
+    gap: var(--bh-gap);
+    font-size: 0.7rem;
+    line-height: var(--bh-size);
+    color: var(--bh-label);
+  }
+
+  .bh-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(7, var(--bh-size));
+    grid-template-columns: repeat(53, var(--bh-size));
+    gap: var(--bh-gap);
+  }
+
+  .bh-foot {
+    margin: 0.6rem 0 0;
+    font-size: 0.78rem;
+    color: var(--bh-label);
+  }
+</style>
