@@ -2,8 +2,8 @@
 title: "SSH로 붙은 VM에서 타이핑이 몇 분씩 밀렸다 — sshd의 역방향 DNS 조회 타임아웃"
 description: "입력은 받는데 화면 반영이 몇 분씩 지연됐다. 연결이 느린 게 아니라 로그인 단계의 이름 조회가 타임아웃을 기다리고 있었다."
 date: 2026-09-01 08:26:57 +0900
-categories: [트러블슈팅, 리눅스]
-tags: [ssh, sshd, virtualbox, dns, gssapi, 포트포워딩]
+categories: [Linux]
+tags: [트러블슈팅, ssh, sshd, virtualbox, dns, gssapi, 포트포워딩]
 error_signatures:
   - "SSH 접속 후 프롬프트가 수십 초~수 분간 멈춤"
   - "타이핑은 입력되지만 화면 반영이 지연됨"

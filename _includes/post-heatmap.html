@@ -1,7 +1,7 @@
 {%- comment -%}
   글을 쓴 날을 1년치 격자로 보여준다. GitHub 기여도 그래프와 달리
   API 토큰이 필요 없고, site.posts 만으로 빌드 타임에 계산된다.
-  _tabs/about.md 등 아무 페이지에서 {% include post-heatmap.html %} 로 호출.
+  아무 페이지에서 {% include post-heatmap.html %} 로 호출. 현재는 _layouts/home.html(홈)에서 쓴다.
 {%- endcomment -%}
 
 {%- assign WEEKS = 52 -%}
@@ -22,11 +22,22 @@
 
 {%- assign total_cells = WEEKS | plus: 1 | times: 7 -%}
 {%- assign last_index = total_cells | minus: 1 -%}
+
+{%- comment -%}
+  제목에 횟수를 넣어야 해서 격자를 그리기 전에 미리 합산한다.
+  격자가 덮는 구간 [start_ts, today_ts] 안에 있는 날짜만 센다.
+{%- endcomment -%}
 {%- assign year_count = 0 -%}
+{%- for g in by_day -%}
+  {%- assign gts = g.name | date: '%s' | plus: 0 -%}
+  {%- if gts >= start_ts and gts <= today_ts -%}
+    {%- assign year_count = year_count | plus: g.items.size -%}
+  {%- endif -%}
+{%- endfor -%}
 
 <div class="bh">
   <div class="bh-head">
-    <span class="bh-title">브로콜리 심은 날</span>
+    <span class="bh-title">최근 1년 동안 {{ year_count }}회 기여</span>
     <span class="bh-legend">
       적음
       <i class="bh-cell bh-l0"></i><i class="bh-cell bh-l1"></i><i class="bh-cell bh-l2"></i><i class="bh-cell bh-l3"></i><i class="bh-cell bh-l4"></i>
@@ -71,7 +82,6 @@
               {%- else -%}
                 {%- assign n = 0 -%}
               {%- endif -%}
-              {%- assign year_count = year_count | plus: n -%}
               {%- if n == 0 -%}{%- assign lv = 0 -%}
               {%- elsif n == 1 -%}{%- assign lv = 1 -%}
               {%- elsif n == 2 -%}{%- assign lv = 2 -%}
@@ -86,7 +96,7 @@
     </div>
   </div>
 
-  <p class="bh-foot">최근 1년 {{ year_count }}편 · 전체 {{ site.posts | size }}편</p>
+  <p class="bh-foot">전체 {{ site.posts | size }}편</p>
 </div>
 
 <style>

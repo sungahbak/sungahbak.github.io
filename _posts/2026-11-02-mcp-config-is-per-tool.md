@@ -2,8 +2,8 @@
 title: "Antigravity에 Notion MCP를 깔았는데 Claude Code에는 안 보인다"
 description: "MCP 설정이 계정 단위가 아니라 도구 단위라는 걸 모르고 세 번 오진한 기록."
 date: 2026-11-02 23:50:00 +0900
-categories: [트러블슈팅, 개발환경]
-tags: [mcp, claude-code, antigravity, notion, oauth]
+categories: [개발환경]
+tags: [트러블슈팅, mcp, claude-code, antigravity, notion, oauth]
 # 아래 두 항목은 나중에 에러 메시지 검색 색인에 쓰기 위해 쌓아두는 값이다.
 error_signatures:
   - "Needs authentication"

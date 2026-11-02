@@ -14,9 +14,9 @@ timezone: Asia/Seoul
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: broccoli.log # the main title
+title: "©sunga" # the main title
 
-tagline: 고장낸 것에서 개념으로 내려가는 기록
+tagline: 숲을 보자
 
 description: >- # used by seo meta and the atom feed
   클라우드 부트캠프 실습과 OTA 플랫폼 프로젝트에서 실제로 터진 문제를 증상부터 원인까지 추적한 트러블슈팅 기록.

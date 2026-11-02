@@ -2,8 +2,8 @@
 title: "연결이 비공개로 설정되어 있지 않습니다 — 인증서 검증 실패가 TLS handshake를 중단시키는 이유"
 description: "HTTP는 되고 HTTPS만 안 됐다. handshake가 시작조차 못 한 게 아니라, 진행되던 handshake를 클라이언트가 중단시킨 것이었다."
 date: 2026-09-15 00:00:58 +0900
-categories: [트러블슈팅, 네트워크]
-tags: [tls, https, letsencrypt, certbot, nginx, openssl, aws-ec2]
+categories: [네트워크]
+tags: [트러블슈팅, tls, https, letsencrypt, certbot, nginx, openssl, aws-ec2]
 error_signatures:
   - "연결이 비공개로 설정되어 있지 않습니다"
   - "이 사이트는 안전하지 않습니다"

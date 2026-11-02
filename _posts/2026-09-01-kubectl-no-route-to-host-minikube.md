@@ -2,8 +2,8 @@
 title: "kubectl apply가 \"failed to download openapi\"로 죽었다 — YAML이 아니라 클러스터가 꺼져 있었다"
 description: "에러 메시지는 YAML 검증 실패를 가리키는데, 실제로는 API 서버에 TCP 연결 자체가 안 되고 있었다."
 date: 2026-09-01 08:40:00 +0900
-categories: [트러블슈팅, 쿠버네티스]
-tags: [kubectl, minikube, kubernetes, 네트워크]
+categories: [Kubernetes]
+tags: [트러블슈팅, kubectl, minikube, kubernetes]
 error_signatures:
   - "error validating \"pod.yaml\": error validating data: failed to download openapi"
   - "dial tcp 192.168.49.2:8443: connect: no route to host"

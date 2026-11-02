@@ -1,0 +1,106 @@
+{%- comment -%}
+  오른쪽 패널의 "목차". 트리 구조는 _data/category_tree.yml 에서 선언한다.
+  site.categories 로 글 수를 세고, 0편인 항목은 링크를 걸지 않는다
+  (존재하지 않는 /categories/... 로 링크하면 htmlproofer가 빌드를 깬다).
+{%- endcomment -%}
+
+{%- assign tree = site.data.category_tree -%}
+
+{%- if tree and tree.size > 0 -%}
+  <section id="access-category-tree">
+    <h2 class="panel-heading">목차</h2>
+    <ul class="content list-unstyled ps-0 pb-1 ms-1 mt-2 ct">
+      {%- for node in tree -%}
+        {%- assign top_posts = site.categories[node.name] -%}
+        {%- assign top_n = top_posts | size -%}
+
+        <li class="ct-top{% if top_n == 0 %} ct-empty{% endif %}">
+          {%- if top_n > 0 -%}
+            {%- capture url -%}/categories/{{ node.name | slugify | url_encode }}/{%- endcapture -%}
+            <a href="{{ url | relative_url }}">{{ node.name }}</a><span class="ct-n">{{ top_n }}</span>
+          {%- else -%}
+            <span class="ct-name">{{ node.name }}</span>
+          {%- endif -%}
+        </li>
+
+        {%- if node.children -%}
+          {%- for child in node.children -%}
+            {%- assign sub_posts = site.categories[child] -%}
+            {%- assign sub_n = sub_posts | size -%}
+            <li class="ct-sub{% if sub_n == 0 %} ct-empty{% endif %}">
+              {%- if sub_n > 0 -%}
+                {%- capture surl -%}/categories/{{ child | slugify | url_encode }}/{%- endcapture -%}
+                <a href="{{ surl | relative_url }}">{{ child }}</a><span class="ct-n">{{ sub_n }}</span>
+              {%- else -%}
+                <span class="ct-name">{{ child }}</span>
+              {%- endif -%}
+            </li>
+          {%- endfor -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </section>
+  <!-- #access-category-tree -->
+{%- endif -%}
+
+<style>
+  #access-category-tree .ct {
+    line-height: 1.1;
+  }
+
+  #access-category-tree .ct li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding: 0.2rem 0;
+    font-size: 0.92rem;
+  }
+
+  #access-category-tree .ct-sub {
+    padding-left: 0.85rem;
+    font-size: 0.86rem !important;
+  }
+
+  #access-category-tree .ct-sub::before {
+    content: '';
+    flex: 0 0 auto;
+    width: 0.4rem;
+    height: 1px;
+    margin-right: 0.1rem;
+    background-color: var(--text-muted-color, #828282);
+    opacity: 0.45;
+  }
+
+  #access-category-tree .ct a {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #access-category-tree .ct-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  #access-category-tree .ct-n {
+    flex: 0 0 auto;
+    font-size: 0.75rem;
+    font-family: Lato, sans-serif;
+    color: var(--text-muted-color, #828282);
+    opacity: 0.8;
+  }
+
+  /* 아직 글이 없는 항목 = 쓸 거 목록 */
+  #access-category-tree .ct-empty {
+    opacity: 0.4;
+  }
+
+  #access-category-tree .ct-empty .ct-name {
+    cursor: default;
+  }
+</style>

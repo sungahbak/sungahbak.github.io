@@ -13,8 +13,8 @@
 title: "제목에 증상을 그대로 적는다"
 description: "한 줄 요약. 검색 결과와 목록에 노출된다."
 date: 2026-11-02 23:50:00 +0900
-categories: [트러블슈팅, 개발환경]   # 최대 2단계
-tags: [mcp, claude-code]            # 소문자
+categories: [개발환경]              # 기술 스택. _data/category_tree.yml 의 이름과 일치시킨다
+tags: [트러블슈팅, mcp, claude-code] # 첫 태그는 글 형식(트러블슈팅/구성해설/측정기록), 나머지는 소문자
 error_signatures:                   # 에러 메시지 원문 (검색 색인용으로 쌓는 중)
   - "Needs authentication"
 verified: 2026-11-02                # 마지막으로 재현을 확인한 날
@@ -40,7 +40,23 @@ verified: 2026-11-02                # 마지막으로 재현을 확인한 날
 
 | 파일 | 내용 |
 | --- | --- |
-| `_includes/post-heatmap.html` | 글 쓴 날을 1년치 격자로 보여준다. `site.posts`만 쓰므로 API 토큰이 필요 없다. `_tabs/about.md`에서 호출. |
+| `_includes/post-heatmap.html` | "최근 1년 동안 N회 기여" 격자. `site.posts`만 쓰므로 API 토큰이 필요 없다. |
+| `_layouts/home.html` | 테마 원본(v7.6.0) + 글 목록 위에 위 격자 한 블록 추가. |
+| `_includes/category-tree.html` | 오른쪽 패널의 "목차". 트리는 `_data/category_tree.yml`에서 선언한다. |
+| `_data/category_tree.yml` | 목차 트리. **글이 0편인 항목은 링크 없이 흐리게** 나온다 = 쓸 거 목록. |
+| `_layouts/default.html` | 테마 원본 + 패널에서 `category-tree`를 `update-list` 위에 끼운 한 줄. |
+| `_layouts/archives.html` | 아카이브를 **달 단위**로. 달을 클릭하면 날짜 단위로 펼쳐진다 (`<details>`, JS 없음). |
+
+### 카테고리 / 태그 규칙
+
+- **카테고리 = 기술 스택.** `_data/category_tree.yml`에 선언한 이름만 쓴다. 안 쓰면 목차에 안 뜬다.
+  2단계를 쓰는 건 `CI/CD`, `IaC`, `모니터링`뿐이다 (예: `[IaC, Terraform]`).
+- **글 형식은 태그.** 첫 태그를 `트러블슈팅` / `구성해설` / `측정기록` 중 하나로 둔다.
+- **프로젝트도 태그.** ORBIT 관련 글은 카테고리를 기술 스택으로 두고 `orbit` 태그를 붙인다.
+  카테고리로 빼면 쿠버네티스 글을 찾는 사람이 ORBIT 밑에 숨은 글을 못 찾는다.
+- 목차에 새 항목이 필요하면 `_data/category_tree.yml`에 한 줄 추가한다.
+
+> 정보(about) 탭은 없앴다. 기여 격자는 홈으로 옮겼다.
 
 ## 로컬 미리보기 (선택)
 

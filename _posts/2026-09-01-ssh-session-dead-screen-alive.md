@@ -2,8 +2,8 @@
 title: "SSH 세션은 죽었는데 터미널 화면은 그대로 남아 있다 — nano로 편집하던 내용은 어떻게 되나"
 description: "화면이 멀쩡해서 살아 있는 줄 알았다. 그 화면은 이미 끊긴 연결이 마지막으로 그려놓고 간 잔상이었다."
 date: 2026-09-01 08:33:00 +0900
-categories: [트러블슈팅, 리눅스]
-tags: [ssh, nano, tmux, virtualbox, 세션]
+categories: [Linux]
+tags: [트러블슈팅, ssh, nano, tmux, virtualbox, 세션]
 error_signatures:
   - "SSH 터미널에 입력해도 아무 반응이 없음 (에러도 없음)"
   - "client_loop: send disconnect: Broken pipe"

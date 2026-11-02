@@ -1,0 +1,177 @@
+---
+layout: page
+# 달 단위 아카이브. 달을 클릭하면 그 달의 글이 날짜와 함께 펼쳐진다.
+# (테마 원본은 연도 아래에 모든 글을 일 단위로 펼쳐놓는 타임라인이다)
+---
+
+{% include lang.html %}
+
+{%- assign by_year = site.posts | group_by_exp: 'p', 'p.date | date: "%Y"' -%}
+
+<div id="archives-m">
+  {%- for y in by_year -%}
+    {%- assign is_first_year = forloop.first -%}
+    {%- assign year_total = y.items | size -%}
+
+    <section class="am-year">
+      <h2 class="am-y">
+        <span class="am-y-label">{{ y.name }}</span>
+        <span class="am-y-n">{{ year_total }}편</span>
+      </h2>
+
+      {%- assign by_month = y.items | group_by_exp: 'p', 'p.date | date: "%m"' -%}
+      {%- for m in by_month -%}
+        {%- assign month_total = m.items | size -%}
+        <details class="am-month"{% if is_first_year and forloop.first %} open{% endif %}>
+          <summary class="am-sum">
+            <span class="am-chevron" aria-hidden="true"></span>
+            <span class="am-m">{{ m.name | plus: 0 }}월</span>
+            <span class="am-n">{{ month_total }}편</span>
+          </summary>
+
+          <ul class="am-list list-unstyled">
+            {%- for post in m.items -%}
+              <li>
+                <time class="am-d" datetime="{{ post.date | date_to_xmlschema }}">
+                  {{- post.date | date: '%m.%d' -}}
+                </time>
+                <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+              </li>
+            {%- endfor -%}
+          </ul>
+        </details>
+      {%- endfor -%}
+    </section>
+  {%- endfor -%}
+
+  {%- if by_year.size == 0 -%}
+    <p class="text-muted">아직 글이 없습니다.</p>
+  {%- endif -%}
+</div>
+
+<style>
+  #archives-m {
+    --am-line: var(--main-border-color, #ededed);
+    max-width: 44rem;
+  }
+
+  #archives-m .am-year + .am-year {
+    margin-top: 2.25rem;
+  }
+
+  #archives-m .am-y {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    margin: 0 0 0.5rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--am-line);
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  #archives-m .am-y-n {
+    font-size: 0.78rem;
+    font-weight: 400;
+    font-family: Lato, sans-serif;
+    color: var(--text-muted-color, #828282);
+  }
+
+  /* ── 달 ── */
+  #archives-m .am-month {
+    border-bottom: 1px solid var(--am-line);
+  }
+
+  #archives-m .am-month:last-child {
+    border-bottom: none;
+  }
+
+  #archives-m .am-sum {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 0.2rem;
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  /* 브라우저 기본 삼각형 제거 */
+  #archives-m .am-sum::-webkit-details-marker {
+    display: none;
+  }
+
+  #archives-m .am-sum::marker {
+    content: '';
+  }
+
+  #archives-m .am-sum:hover .am-m {
+    color: var(--link-color, #2a408e);
+  }
+
+  #archives-m .am-chevron {
+    flex: 0 0 auto;
+    width: 0.42rem;
+    height: 0.42rem;
+    margin-left: 0.15rem;
+    border-right: 1.6px solid var(--text-muted-color, #828282);
+    border-bottom: 1.6px solid var(--text-muted-color, #828282);
+    transform: rotate(-45deg);
+    transition: transform 0.15s ease;
+  }
+
+  #archives-m .am-month[open] > .am-sum .am-chevron {
+    transform: rotate(45deg);
+  }
+
+  #archives-m .am-m {
+    flex: 1 1 auto;
+    font-size: 1.05rem;
+    transition: color 0.15s ease;
+  }
+
+  #archives-m .am-n {
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+    font-family: Lato, sans-serif;
+    color: var(--text-muted-color, #828282);
+  }
+
+  /* ── 펼친 뒤: 날짜 단위 ── */
+  #archives-m .am-list {
+    margin: 0 0 0.6rem;
+    padding-left: 1.05rem;
+    border-left: 1px solid var(--am-line);
+  }
+
+  #archives-m .am-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.7rem;
+    padding: 0.32rem 0;
+  }
+
+  #archives-m .am-d {
+    flex: 0 0 2.6rem;
+    font-size: 0.8rem;
+    font-family: Lato, sans-serif;
+    color: var(--text-muted-color, #828282);
+    text-align: right;
+  }
+
+  #archives-m .am-list a {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  @media (max-width: 575px) {
+    #archives-m .am-y {
+      font-size: 1.3rem;
+    }
+
+    #archives-m .am-m {
+      font-size: 1rem;
+    }
+  }
+</style>
