@@ -1,6 +1,6 @@
-# broccoli.log
+# sungashell
 
-트러블슈팅 기록 블로그 — <https://sungahbak.github.io>
+공부기록 블로그 — <https://sungahbak.github.io>
 
 [Jekyll](https://jekyllrb.com/) + [Chirpy](https://github.com/cotes2020/jekyll-theme-chirpy) 테마. `main`에 push하면 GitHub Actions가 빌드해서 Pages로 배포한다.
 
