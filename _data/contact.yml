@@ -1,22 +1,21 @@
-#  The contact options.
+# 하단 푸터 연락처 및 외부 계정 링크 설정 (GitHub, LinkedIn, Email, Threads)
 
 - type: github
   icon: "fab fa-github"
+  label: "GitHub"
 
-- type: rss
-  icon: "fas fa-rss"
-  noblank: true # open link in current tab
+- type: linkedin
+  icon: "fab fa-linkedin"
+  label: "LinkedIn"
+  url: "https://www.linkedin.com/" # 본인 LinkedIn 프로필 주소로 변경하세요
 
-# Uncomment and complete the url below to enable more contact options
-#
-# - type: email
-#   icon: 'fas fa-envelope'
-#   noblank: true
-#
-# - type: linkedin
-#   icon: 'fab fa-linkedin'
-#   url:  ''
-#
-# - type: stack-overflow
-#   icon: 'fab fa-stack-overflow'
-#   url:  ''
+- type: email
+  icon: "fas fa-envelope"
+  label: "Email"
+  url: "mailto:pasun@example.com" # 본인 이메일 주소로 변경하세요
+  noblank: true
+
+- type: threads
+  icon: "fa-brands fa-threads"
+  label: "Threads"
+  url: "https://www.threads.net/" # 본인 Threads 계정 주소로 변경하세요

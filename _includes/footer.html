@@ -1,0 +1,92 @@
+<!-- 하단 푸터: 저작권 표시 + 외부 링크(GitHub, LinkedIn, Email, Threads) -->
+
+<footer
+  aria-label="Site Info"
+  class="toss-footer d-flex flex-column flex-md-row justify-content-between align-items-center text-muted"
+>
+  <div class="footer-left">
+    <span>© {{ 'now' | date: '%Y' }}</span>
+    <a href="{{ '/' | relative_url }}" class="footer-brand">{% if site.title == '©sunga' %}sungashell{% else %}{{ site.title }}{% endif %}</a>
+  </div>
+
+  <div class="footer-contacts d-flex align-items-center">
+    {% for entry in site.data.contact %}
+      {% assign url = entry.url %}
+      {% if entry.type == 'github' and url == nil %}
+        {% assign url = 'https://github.com/' | append: site.github.username %}
+      {% endif %}
+
+      {% if url and url != '' %}
+        <a
+          href="{{ url }}"
+          class="footer-contact-link"
+          aria-label="{{ entry.label | default: entry.type }}"
+          title="{{ entry.label | default: entry.type }}"
+          {% unless entry.noblank %}
+            target="_blank"
+            rel="noopener noreferrer"
+          {% endunless %}
+        >
+          <i class="{{ entry.icon }}"></i>
+        </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+</footer>
+
+<style>
+  footer.toss-footer {
+    height: auto;
+    min-height: 4.75rem;
+    padding: 1.4rem 0.25rem;
+    margin-top: 2.5rem;
+    border-top: 1px solid rgba(0, 27, 55, 0.07);
+    background-color: transparent;
+    gap: 0.75rem;
+  }
+
+  .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.86rem;
+    color: #8b95a1;
+  }
+
+  .footer-brand {
+    font-weight: 600;
+    color: #4e5968 !important;
+    text-decoration: none;
+    border-bottom: none !important;
+  }
+
+  .footer-brand:hover {
+    color: #191f28 !important;
+  }
+
+  .footer-contacts {
+    gap: 0.5rem;
+  }
+
+  .footer-contact-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 10px;
+    background-color: #f6f7f9;
+    color: #4e5968 !important;
+    font-size: 0.98rem;
+    text-decoration: none;
+    border-bottom: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .footer-contact-link:hover {
+    background-color: #e5e8eb;
+    color: #191f28 !important;
+    border-bottom: none !important;
+  }
+</style>
+
