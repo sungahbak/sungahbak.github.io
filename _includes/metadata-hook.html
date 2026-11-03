@@ -1,0 +1,59 @@
+<!-- 토스 기술블로그(Toss Tech) 서체(Pretendard) 및 전역 스타일 설정 -->
+<link
+  rel="stylesheet"
+  as="style"
+  crossorigin
+  href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+>
+<style>
+  :root,
+  :root[data-bs-theme='light'] {
+    --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui,
+      Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic',
+      sans-serif;
+    --main-bg: #ffffff;
+    --heading-color: #191f28;
+    --text-color: #333d4b;
+    --text-muted-color: #8b95a1;
+    --link-color: #3182f6;
+    --main-border-color: rgba(0, 27, 55, 0.07);
+  }
+
+  html,
+  body {
+    background-color: #ffffff !important;
+  }
+
+  body,
+  h1, h2, h3, h4, h5, h6,
+  header .post-desc,
+  #toc-bar .label,
+  #search-results a,
+  #topbar-title,
+  #notification.toast .toast-body,
+  #toc-popup #toc-popup-content,
+  #toc-popup .header .label,
+  #toc-solo-trigger .label,
+  .pagination {
+    font-family: var(--font-sans) !important;
+    letter-spacing: -0.02em;
+    word-break: keep-all;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 우측 패널 기본 좌측 세로선 제거 */
+  .access > section {
+    border-left: none !important;
+    padding-left: 0 !important;
+  }
+
+  .access > section:not(:first-child) {
+    margin-top: 1.5rem !important;
+  }
+</style>
+<script>
+  if (document.title && document.title.includes('©sunga')) {
+    document.title = document.title.replace('©sunga', 'sungashell').replace(/^\s*\|\s*/, '');
+  }
+</script>
+
