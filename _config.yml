@@ -1,175 +1,140 @@
-# The Site Configuration
+# 사이트 전체 설정 파일 (_config.yml)
 
-# Import the theme
+# 사용할 Jekyll 테마
 theme: jekyll-theme-chirpy
 
-# The language of the webpage › http://www.lingoes.net/en/translator/langcode.htm
-# If it has the same name as one of the files in folder `_data/locales`, the layout language will also be changed,
-# otherwise, the layout language will use the default value of 'en'.
+# 웹페이지 기본 언어 설정 (_data/locales 폴더의 파일명과 일치하면 해당 언어팩이 적용됨)
 lang: ko-KR
 
-# Change to your timezone › https://zones.arilyn.cc
+# 표준 시간대 설정
 timezone: Asia/Seoul
 
-# jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
+# jekyll-seo-tag 메타데이터 설정
 # ↓ --------------------------
 
-title: "©sunga" # the main title
+# 블로그 대표 제목 (개인 이름 없이 깔끔한 기술블로그 이름)
+title: "sungashell"
 
-tagline: 숲을 보자
+# 블로그 부제 (한 줄 소개)
+tagline: "문제의 원인을 끝까지 추적하는 인프라 · 클라우드 기술블로그"
 
-description: >- # used by seo meta and the atom feed
-  클라우드 부트캠프 실습과 OTA 플랫폼 프로젝트에서 실제로 터진 문제를 증상부터 원인까지 추적한 트러블슈팅 기록.
+# 검색엔진(SEO) 및 RSS 피드에 노출될 블로그 설명
+description: >-
+  클라우드 · 인프라 · 쿠버네티스 환경에서 마주친 트러블슈팅 기록(syslog), 핵심 기술 개념(root), 알아두면 쓸모 있는 잡학 IT 지식(stdout)을 정리합니다.
 
-# Fill in the protocol & hostname for your site.
-# E.g. 'https://username.github.io', note that it does not end with a '/'.
+# 사이트 기본 URL (끝에 '/'를 붙이지 않음)
 url: "https://sungahbak.github.io"
 
 github:
   username: sungahbak
 
-# twitter:
-#   username:
-
+# 작성자 및 하단 저작권(Copyright) 표기 설정
 social:
-  # Change to your full name.
-  # It will be displayed as the default author of the posts and the copyright owner in the Footer
-  name: sungah
-  email: # 공개되는 값이라 비워둠
-  fediverse_handle: # fill in your fediverse handle. E.g. "@username@domain.com"
+  name: sungashell
+  email: # 스팸 방지를 위해 비워두거나 필요 시 입력
+  fediverse_handle:
   links:
-    # The first element serves as the copyright owner's link
+    # 첫 번째 링크가 푸터 저작권자 대표 링크로 사용됨
     - https://github.com/sungahbak
-    # Uncomment below to add more social links
-    # - https://www.facebook.com/username
-    # - https://www.linkedin.com/in/username
 
-# Site Verification Settings
+# 검색엔진 웹마스터 소유권 확인 코드 설정
 webmaster_verifications:
-  google: # fill in your Google verification code
-  bing: # fill in your Bing verification code
-  alexa: # fill in your Alexa verification code
-  yandex: # fill in your Yandex verification code
-  baidu: # fill in your Baidu verification code
-  facebook: # fill in your Facebook verification code
+  google:
+  bing:
+  alexa:
+  yandex:
+  baidu:
+  facebook:
 
 # ↑ --------------------------
-# The end of `jekyll-seo-tag` settings
 
-# Web Analytics Settings
+# 웹 분석 도구 설정
 analytics:
   google:
-    id: # fill in your Google Analytics ID
+    id:
   goatcounter:
-    id: # fill in your GoatCounter ID
+    id:
   umami:
-    id: # fill in your Umami ID
-    domain: # fill in your Umami domain
+    id:
+    domain:
   matomo:
-    id: # fill in your Matomo ID
-    domain: # fill in your Matomo domain
+    id:
+    domain:
   cloudflare:
-    id: # fill in your Cloudflare Web Analytics token
+    id:
   fathom:
-    id: # fill in your Fathom Site ID
+    id:
 
-# Page views settings
+# 조회수 카운터 설정
 pageviews:
-  provider: # now only supports 'goatcounter'
+  provider:
 
-# Prefer color scheme setting.
-#
-# Note: Keep empty will follow the system prefer color by default,
-# and there will be a toggle to switch the theme between dark and light
-# on the bottom left of the sidebar.
-#
-# Available options:
-#
-#     light — Use the light color scheme
-#     dark — Use the dark color scheme
-#
-theme_mode: # [light | dark]
+# 색상 테마 설정 (토스 기술블로그 스타일에 맞춰 라이트 모드 고정)
+theme_mode: light
 
-# The CDN endpoint for media resources.
-# Notice that once it is assigned, the CDN url
-# will be added to all media resources (site avatar, posts' images, audio and video files) paths starting with '/'
-#
-# e.g. 'https://cdn.com'
+# 미디어 리소스용 CDN 엔드포인트
 cdn:
 
-# the avatar on sidebar, support local or CORS resources
+# 프로필 아바타 이미지 경로
 avatar:
 
-# The URL of the site-wide social preview image used in SEO `og:image` meta tag.
-# It can be overridden by a customized `page.image` in front matter.
-social_preview_image: # string, local or CORS resources
+# 기본 소셜 미리보기(OG) 이미지
+social_preview_image:
 
-# boolean type, the global switch for TOC in posts.
+# 포스트 본문 우측 목차(TOC) 전역 활성화 여부
 toc: true
 
 actions:
-  # Display "Edit this post" action on each post page to encourage contributions.
+  # 포스트 하단 "글 수정하기" 링크 노출 여부
   edit_post:
-    enabled: false # set to true to display the "Edit this post" action.
-    url: "" # repository base URL, e.g. https://github.com/cotes2020/jekyll-theme-chirpy/edit/master
-    # Use dynamic or static URL for the edit link.
-    # If `static_url` is false, the post's path will be appended to the `url` above as the final edit link.
-    # Set to true if the URL should remain unchanged, which means each post will share the same edit link.
-    static_url: false # [ true | false ]
+    enabled: false
+    url: ""
+    static_url: false
 
 comments:
-  # Global switch for the post-comment system. Keeping it empty means disabled.
-  provider: # [disqus | utterances | giscus]
-  # The provider options are as follows:
+  # 댓글 시스템 설정 (비워두면 비활성화)
+  provider:
   disqus:
-    shortname: # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
-  # utterances settings › https://utteranc.es/
+    shortname:
   utterances:
-    repo: # <gh-username>/<repo>
-    issue_term: # < url | pathname | title | ...>
-  # Giscus options › https://giscus.app
+    repo:
+    issue_term:
   giscus:
-    repo: # <gh-username>/<repo>
+    repo:
     repo_id:
     category:
     category_id:
-    mapping: # optional, default to 'pathname'
-    strict: # optional, default to '0'
-    input_position: # optional, default to 'bottom'
-    lang: # optional, default to the value of `site.lang`
-    reactions_enabled: # optional, default to the value of `1`
+    mapping:
+    strict:
+    input_position:
+    lang:
+    reactions_enabled:
 
-# Self-hosted static assets, optional › https://github.com/cotes2020/chirpy-static-assets
+# 정적 에셋 자체 호스팅 여부
 assets:
   self_host:
-    enabled: # boolean, keep empty means false
-    # specify the Jekyll environment, empty means both
-    # only works if `assets.self_host.enabled` is 'true'
-    env: # [development | production]
+    enabled:
+    env:
 
 pwa:
-  enabled: true # The option for PWA feature (installable)
+  enabled: true # PWA 설치 기능 활성화
   cache:
-    enabled: true # The option for PWA offline cache
-    # Paths defined here will be excluded from the PWA cache.
-    # Usually its value is the `baseurl` of another website that
-    # shares the same domain name as the current website.
+    enabled: false # 파비콘/타이틀 등 변경사항이 즉시 반영되도록 오프라인 캐시 비활성화
     deny_paths:
-      # - "/example"  # URLs match `<SITE_URL>/example/*` will not be cached by the PWA
 
-paginate: 10
+# 홈 화면 페이지당 최대 포스트 개수 (최대 6개)
+paginate: 6
 
-# The base URL of your site
+# 사이트 하위 경로 (루트 도메인이므로 빈 문자열)
 baseurl: ""
 
-# ------------ The following options are not recommended to be modified ------------------
+# ------------ 아래 옵션들은 테마 내부 동작을 위한 설정이므로 수정을 권장하지 않음 ------------------
 
 kramdown:
   footnote_backlink: "&#8617;&#xfe0e;"
   syntax_highlighter: rouge
-  syntax_highlighter_opts: # Rouge Options › https://github.com/jneen/rouge#full-options
+  syntax_highlighter_opts:
     css_class: highlight
-    # default_lang: console
     span:
       line_numbers: false
     block:
@@ -183,14 +148,12 @@ collections:
 
 defaults:
   - scope:
-      path: "" # An empty string here means all files in the project
+      path: ""
       type: posts
     values:
       layout: post
-      comments: true # Enable comments in posts.
-      toc: true # Display TOC column in posts.
-      # DO NOT modify the following parameter unless you are confident enough
-      # to update the code of all other post links in this project.
+      comments: true
+      toc: true
       permalink: /posts/:title/
   - scope:
       path: _drafts
@@ -198,7 +161,7 @@ defaults:
       comments: false
   - scope:
       path: ""
-      type: tabs # see `site.collections`
+      type: tabs
     values:
       layout: page
       permalink: /:title/
