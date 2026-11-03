@@ -1,0 +1,971 @@
+{%- comment -%}
+  각 탭(syslog, root, stdout) 상단의 '글쓰기' 버튼 및 인라인 에디터 컴포넌트.
+  - 제목 우측의 '글쓰기' 버튼을 누르면 부드럽게 작성 폼이 펼쳐진다.
+  - syslog / root: 분야, 제목, 요약, 태그, 슬러그, 마크다운 본문 작성 및 미리보기 지원
+    -> GitHub API로 _posts/YYYY-MM-DD-slug.md 직접 커밋 게시, .md 파일 다운로드, 마크다운 복사 지원
+  - stdout: 분야, 한 줄 IT 지식 내용, 명령어(선택) 작성 지원
+    -> GitHub API로 _data/stdout.yml에 직접 커밋 게시, YAML 복사 지원
+{%- endcomment -%}
+
+{% assign current_tab = include.tab_id | default: page.tab_id | default: 'syslog' %}
+
+<header class="tab-clean-header tab-header-with-action">
+  <div class="tab-header-text">
+    <h1 class="tab-clean-title">{{ include.title }}</h1>
+    <p class="tab-clean-desc">{{ include.desc }}</p>
+  </div>
+
+  <button
+    type="button"
+    id="tab-write-toggle"
+    class="tab-write-btn"
+    aria-expanded="false"
+    aria-controls="tab-writer-panel"
+  >
+    <svg class="tab-write-icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M8 3.25V12.75M3.25 8H12.75" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </svg>
+    <span>글쓰기</span>
+  </button>
+</header>
+
+<section id="tab-writer-panel" class="tab-writer-panel d-none" aria-label="새 글 작성" data-tab="{{ current_tab }}">
+  <div class="tw-top-bar">
+    <div class="tw-top-left">
+      <span class="tw-badge">{{ current_tab }}</span>
+      <h2 class="tw-heading">
+        {% if current_tab == 'stdout' %}
+          새 한 줄 IT 지식 작성
+        {% elsif current_tab == 'root' %}
+          새 개념 정리 글 작성
+        {% else %}
+          새 트러블슈팅 기록 작성
+        {% endif %}
+      </h2>
+      {% if current_tab != 'stdout' %}
+        <button type="button" id="tw-template-btn" class="tw-sub-pill">
+          기본 양식 채우기
+        </button>
+      {% endif %}
+    </div>
+
+    <div class="tw-top-right">
+      {% if current_tab != 'stdout' %}
+        <div class="tw-mode-switch" role="tablist">
+          <button type="button" class="tw-mode-btn active" data-mode="write">작성</button>
+          <button type="button" class="tw-mode-btn" data-mode="preview">미리보기</button>
+        </div>
+      {% endif %}
+      <button type="button" id="tw-gh-toggle" class="tw-sub-pill" title="GitHub 저장소 직접 게시를 위한 토큰 설정">
+        GitHub 토큰 설정
+      </button>
+    </div>
+  </div>
+
+  <!-- GitHub Personal Access Token 설정 영역 (기본 숨김) -->
+  <div id="tw-gh-box" class="tw-gh-box d-none">
+    <div class="tw-gh-row">
+      <label for="tw-gh-token" class="tw-label mb-0">GitHub Token</label>
+      <input
+        type="password"
+        id="tw-gh-token"
+        class="tw-input tw-gh-input"
+        placeholder="ghp_... 또는 github_pat_... (repo / contents 쓰기 권한)"
+        autocomplete="off"
+      >
+      <button type="button" id="tw-gh-save" class="tw-btn-secondary">저장</button>
+    </div>
+    <p class="tw-gh-help">
+      토큰은 현재 브라우저(<code>localStorage</code>)에만 안전하게 보관되며, <strong>GitHub에 게시</strong> 버튼을 누를 때 <code>sungahbak/sungahbak.github.io</code> 저장소로 바로 커밋됩니다.
+    </p>
+  </div>
+
+  {% if current_tab == 'stdout' %}
+    <!-- stdout 전용 간결한 입력 폼 -->
+    <div class="tw-grid-2">
+      <div class="tw-field-group">
+        <label for="tw-field" class="tw-label">분야 카테고리</label>
+        <select id="tw-field" class="tw-select">
+          {% for node in site.data.category_tree %}
+            <option value="{{ node.name }}">{{ node.name }}</option>
+            {% if node.children %}
+              {% for child in node.children %}
+                {% assign child_label = child.name | default: child %}
+                <option value="{{ child_label }}">└ {{ child_label }} ({{ node.name }})</option>
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="tw-field-group">
+        <label for="tw-code" class="tw-label">명령어 · 핵심 키워드 <span class="tw-opt">(선택)</span></label>
+        <input
+          type="text"
+          id="tw-code"
+          class="tw-input"
+          placeholder="예: df -i, ss -tan state time-wait"
+        >
+      </div>
+    </div>
+
+    <div class="tw-field-group mt-3">
+      <label for="tw-body" class="tw-label">한 줄 IT 지식 내용</label>
+      <textarea
+        id="tw-body"
+        class="tw-textarea"
+        rows="3"
+        placeholder="알아두면 쓸모 있는 IT 지식을 한두 문장으로 깔끔하게 적어보세요."
+      ></textarea>
+    </div>
+  {% else %}
+    <!-- syslog / root 전용 마크다운 에디터 폼 -->
+    <div class="tw-grid-2">
+      <div class="tw-field-group">
+        <label for="tw-field" class="tw-label">분야 카테고리</label>
+        <select id="tw-field" class="tw-select">
+          {% for node in site.data.category_tree %}
+            <option value="{{ node.name }}">{{ node.name }}</option>
+            {% if node.children %}
+              {% for child in node.children %}
+                {% assign child_label = child.name | default: child %}
+                <option value="{{ node.name }}|{{ child_label }}">└ {{ child_label }} ({{ node.name }})</option>
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="tw-field-group">
+        <label for="tw-slug" class="tw-label">파일 슬러그 (영문 주소)</label>
+        <input
+          type="text"
+          id="tw-slug"
+          class="tw-input"
+          placeholder="예: k8s-coredns-timeout (비워두면 자동 생성)"
+        >
+      </div>
+    </div>
+
+    <div class="tw-field-group mt-3">
+      <label for="tw-title" class="tw-label">제목</label>
+      <input
+        type="text"
+        id="tw-title"
+        class="tw-input tw-input-title"
+        placeholder="글 제목을 입력하세요"
+      >
+    </div>
+
+    <div class="tw-grid-2 mt-3">
+      <div class="tw-field-group">
+        <label for="tw-desc" class="tw-label">한 줄 요약 <span class="tw-opt">(목록 카드에 표시)</span></label>
+        <input
+          type="text"
+          id="tw-desc"
+          class="tw-input"
+          placeholder="핵심 내용을 한 문장으로 요약해 주세요"
+        >
+      </div>
+
+      <div class="tw-field-group">
+        <label for="tw-tags" class="tw-label">태그 <span class="tw-opt">(쉼표로 구분)</span></label>
+        <input
+          type="text"
+          id="tw-tags"
+          class="tw-input"
+          value="{% if current_tab == 'root' %}개념{% else %}트러블슈팅{% endif %}"
+          placeholder="예: 트러블슈팅, Kubernetes, DNS"
+        >
+      </div>
+    </div>
+
+    <div class="tw-editor-wrap mt-3">
+      <div id="tw-toolbar" class="tw-toolbar">
+        <button type="button" class="tw-tool-btn" data-insert="## " title="소제목 (H2)">H2</button>
+        <button type="button" class="tw-tool-btn" data-insert="### " title="하위 제목 (H3)">H3</button>
+        <button type="button" class="tw-tool-btn" data-wrap="**" title="굵게"><strong>B</strong></button>
+        <button type="button" class="tw-tool-btn" data-wrap="`" title="인라인 코드"><code>`코드`</code></button>
+        <button type="button" class="tw-tool-btn" data-block="```bash&#10;&#10;```" title="코드 블록">코드블록</button>
+        <button type="button" class="tw-tool-btn" data-insert="> " title="인용구">인용</button>
+        <button type="button" class="tw-tool-btn" data-insert="- " title="목록">목록</button>
+      </div>
+
+      <textarea
+        id="tw-body"
+        class="tw-textarea tw-textarea-code"
+        rows="11"
+        placeholder="마크다운(Markdown) 형식으로 본문을 작성하세요."
+      ></textarea>
+
+      <div id="tw-preview" class="tw-preview d-none"></div>
+    </div>
+  {% endif %}
+
+  <div class="tw-footer">
+    <span id="tw-status" class="tw-status"></span>
+
+    <div class="tw-actions">
+      <button type="button" id="tw-cancel-btn" class="tw-btn-ghost">닫기</button>
+      <button type="button" id="tw-copy-btn" class="tw-btn-secondary">
+        {% if current_tab == 'stdout' %}YAML 복사{% else %}마크다운 복사{% endif %}
+      </button>
+      {% if current_tab != 'stdout' %}
+        <button type="button" id="tw-download-btn" class="tw-btn-secondary">.md 다운로드</button>
+      {% endif %}
+      <button type="button" id="tw-publish-btn" class="tw-btn-primary">GitHub에 게시</button>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* 헤더 좌측 텍스트 + 우측 글쓰기 버튼 정렬 */
+  .tab-header-with-action {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .tab-header-text {
+    flex: 1 1 auto;
+    min-width: 220px;
+  }
+
+  .tab-write-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.05rem;
+    border-radius: 999px;
+    border: 1px solid rgba(49, 130, 246, 0.22);
+    background-color: #f2f7ff;
+    color: #3182f6;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    cursor: pointer;
+    transition: all 0.16s ease;
+    white-space: nowrap;
+  }
+
+  .tab-write-btn:hover {
+    background-color: #3182f6;
+    color: #ffffff;
+    border-color: #3182f6;
+  }
+
+  .tab-write-btn[aria-expanded="true"] {
+    background-color: #333d4b;
+    border-color: #333d4b;
+    color: #ffffff;
+  }
+
+  .tab-write-icon {
+    width: 15px;
+    height: 15px;
+    transition: transform 0.18s ease;
+  }
+
+  .tab-write-btn[aria-expanded="true"] .tab-write-icon {
+    transform: rotate(45deg);
+  }
+
+  /* 인라인 에디터 패널 */
+  .tab-writer-panel {
+    background-color: #f9fafb;
+    border: 1px solid #e5e8eb;
+    border-radius: 20px;
+    padding: 1.5rem 1.6rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .tw-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.15rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid #e5e8eb;
+  }
+
+  .tw-top-left,
+  .tw-top-right {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+
+  .tw-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    background-color: rgba(49, 130, 246, 0.12);
+    color: #3182f6;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .tw-heading {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #191f28;
+    letter-spacing: -0.02em;
+  }
+
+  .tw-sub-pill {
+    padding: 0.28rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid #d1d6db;
+    background-color: #ffffff;
+    color: #4e5968;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.14s ease, color 0.14s ease;
+  }
+
+  .tw-sub-pill:hover {
+    background-color: #f2f4f6;
+    color: #191f28;
+  }
+
+  .tw-mode-switch {
+    display: inline-flex;
+    background-color: #e5e8eb;
+    padding: 2px;
+    border-radius: 999px;
+  }
+
+  .tw-mode-btn {
+    border: none;
+    background: transparent;
+    padding: 0.22rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #6b7684;
+    cursor: pointer;
+  }
+
+  .tw-mode-btn.active {
+    background-color: #ffffff;
+    color: #191f28;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  }
+
+  /* GitHub 토큰 입력 박스 */
+  .tw-gh-box {
+    background-color: #ffffff;
+    border: 1px solid #e5e8eb;
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .tw-gh-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .tw-gh-input {
+    flex: 1 1 240px;
+  }
+
+  .tw-gh-help {
+    margin: 0.45rem 0 0;
+    font-size: 0.78rem;
+    color: #8b95a1;
+  }
+
+  /* 폼 입력 요소 */
+  .tw-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+
+  @media (max-width: 640px) {
+    .tw-grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .tw-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .tw-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #4e5968;
+  }
+
+  .tw-opt {
+    font-weight: 400;
+    color: #8b95a1;
+  }
+
+  .tw-input,
+  .tw-select,
+  .tw-textarea {
+    width: 100%;
+    border: 1px solid #d1d6db;
+    border-radius: 12px;
+    background-color: #ffffff;
+    padding: 0.62rem 0.85rem;
+    font-size: 0.92rem;
+    color: #191f28;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .tw-input-title {
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  .tw-input:focus,
+  .tw-select:focus,
+  .tw-textarea:focus {
+    border-color: #3182f6;
+    box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.12);
+  }
+
+  /* 에디터 툴바 및 본문 */
+  .tw-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    padding: 0.45rem 0.6rem;
+    background-color: #f2f4f6;
+    border: 1px solid #d1d6db;
+    border-bottom: none;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .tw-tool-btn {
+    border: 1px solid transparent;
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 0.2rem 0.55rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #4e5968;
+    cursor: pointer;
+  }
+
+  .tw-tool-btn:hover {
+    border-color: #d1d6db;
+    color: #191f28;
+  }
+
+  .tw-textarea-code {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    font-family: 'JetBrains Mono', Pretendard, monospace;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    resize: vertical;
+  }
+
+  .tw-preview {
+    min-height: 220px;
+    padding: 1rem 1.15rem;
+    background-color: #ffffff;
+    border: 1px solid #d1d6db;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #333d4b;
+  }
+
+  /* 하단 액션 영역 */
+  .tw-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid #e5e8eb;
+  }
+
+  .tw-status {
+    font-size: 0.84rem;
+    font-weight: 500;
+    color: #3182f6;
+  }
+
+  .tw-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
+
+  .tw-btn-primary,
+  .tw-btn-secondary,
+  .tw-btn-ghost {
+    padding: 0.52rem 1rem;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .tw-btn-primary {
+    border: none;
+    background-color: #3182f6;
+    color: #ffffff;
+  }
+
+  .tw-btn-primary:hover {
+    background-color: #1b64da;
+  }
+
+  .tw-btn-secondary {
+    border: 1px solid #d1d6db;
+    background-color: #ffffff;
+    color: #333d4b;
+  }
+
+  .tw-btn-secondary:hover {
+    background-color: #f2f4f6;
+  }
+
+  .tw-btn-ghost {
+    border: none;
+    background: transparent;
+    color: #6b7684;
+  }
+
+  .tw-btn-ghost:hover {
+    background-color: #e5e8eb;
+    color: #191f28;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('tab-write-toggle');
+    const panel = document.getElementById('tab-writer-panel');
+    if (!toggleBtn || !panel) return;
+
+    const currentTab = panel.dataset.tab || 'syslog';
+    const GH_REPO = 'sungahbak/sungahbak.github.io';
+    const TOKEN_KEY = 'sungashell_gh_pat';
+
+    const ghToggle = document.getElementById('tw-gh-toggle');
+    const ghBox = document.getElementById('tw-gh-box');
+    const ghTokenInput = document.getElementById('tw-gh-token');
+    const ghSaveBtn = document.getElementById('tw-gh-save');
+
+    const fieldEl = document.getElementById('tw-field');
+    const titleEl = document.getElementById('tw-title');
+    const descEl = document.getElementById('tw-desc');
+    const tagsEl = document.getElementById('tw-tags');
+    const slugEl = document.getElementById('tw-slug');
+    const codeEl = document.getElementById('tw-code');
+    const bodyEl = document.getElementById('tw-body');
+    const previewEl = document.getElementById('tw-preview');
+    const toolbarEl = document.getElementById('tw-toolbar');
+    const templateBtn = document.getElementById('tw-template-btn');
+
+    const statusEl = document.getElementById('tw-status');
+    const cancelBtn = document.getElementById('tw-cancel-btn');
+    const copyBtn = document.getElementById('tw-copy-btn');
+    const downloadBtn = document.getElementById('tw-download-btn');
+    const publishBtn = document.getElementById('tw-publish-btn');
+
+    // 저장된 토큰 불러오기
+    const savedToken = localStorage.getItem(TOKEN_KEY) || '';
+    if (ghTokenInput && savedToken) {
+      ghTokenInput.value = savedToken;
+    }
+
+    function setStatus(msg, isError = false) {
+      if (!statusEl) return;
+      statusEl.textContent = msg;
+      statusEl.style.color = isError ? '#f04452' : '#3182f6';
+    }
+
+    // 글쓰기 패널 열기/닫기
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = panel.classList.contains('d-none');
+      panel.classList.toggle('d-none', !isHidden);
+      toggleBtn.setAttribute('aria-expanded', String(isHidden));
+      toggleBtn.querySelector('span').textContent = isHidden ? '닫기' : '글쓰기';
+      if (isHidden) {
+        (titleEl || bodyEl)?.focus();
+      }
+    });
+
+    if (cancelBtn) {
+      cancelBtn.addEventListener('click', () => {
+        panel.classList.add('d-none');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        toggleBtn.querySelector('span').textContent = '글쓰기';
+      });
+    }
+
+    // GitHub 토큰 설정 토글 및 저장
+    if (ghToggle && ghBox) {
+      ghToggle.addEventListener('click', () => {
+        ghBox.classList.toggle('d-none');
+      });
+    }
+
+    if (ghSaveBtn && ghTokenInput) {
+      ghSaveBtn.addEventListener('click', () => {
+        const val = ghTokenInput.value.trim();
+        if (val) {
+          localStorage.setItem(TOKEN_KEY, val);
+          setStatus('GitHub 토큰이 브라우저에 저장되었습니다.');
+          ghBox.classList.add('d-none');
+        } else {
+          localStorage.removeItem(TOKEN_KEY);
+          setStatus('GitHub 토큰이 삭제되었습니다.');
+        }
+      });
+    }
+
+    // 기본 양식 채우기 (syslog / root)
+    if (templateBtn && bodyEl) {
+      templateBtn.addEventListener('click', () => {
+        if (bodyEl.value.trim() && !confirm('현재 작성 중인 본문 뒤에 기본 양식을 추가할까요?')) {
+          return;
+        }
+        const tpl =
+          currentTab === 'root'
+            ? `## 핵심 개념\n\n\n## 동작 원리\n\n\n## 실습 · 예시\n\n\`\`\`bash\n\n\`\`\`\n\n## 정리\n`
+            : `## 문제 현상\n\n\n## 원인 분석\n\n\n## 해결 방법\n\n\`\`\`bash\n\n\`\`\`\n\n## 정리\n`;
+        bodyEl.value = bodyEl.value ? `${bodyEl.value}\n\n${tpl}` : tpl;
+        bodyEl.focus();
+      });
+    }
+
+    // 마크다운 툴바 버튼 동작
+    if (toolbarEl && bodyEl) {
+      toolbarEl.querySelectorAll('.tw-tool-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const start = bodyEl.selectionStart;
+          const end = bodyEl.selectionEnd;
+          const selected = bodyEl.value.substring(start, end);
+
+          if (btn.dataset.insert) {
+            const prefix = btn.dataset.insert;
+            bodyEl.setRangeText(`${prefix}${selected}`, start, end, 'end');
+          } else if (btn.dataset.wrap) {
+            const w = btn.dataset.wrap;
+            bodyEl.setRangeText(`${w}${selected || '텍스트'}${w}`, start, end, 'end');
+          } else if (btn.dataset.block) {
+            bodyEl.setRangeText(`\n\`\`\`bash\n${selected || '# 명령어 입력'}\n\`\`\`\n`, start, end, 'end');
+          }
+          bodyEl.focus();
+        });
+      });
+    }
+
+    // 작성 / 미리보기 모드 전환
+    panel.querySelectorAll('.tw-mode-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        panel.querySelectorAll('.tw-mode-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        const mode = btn.dataset.mode;
+        if (mode === 'preview' && previewEl && bodyEl) {
+          bodyEl.classList.add('d-none');
+          toolbarEl?.classList.add('d-none');
+          previewEl.classList.remove('d-none');
+          const raw = bodyEl.value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/^### (.*$)/gm, '<h4>$1</h4>')
+            .replace(/^## (.*$)/gm, '<h3>$1</h3>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/`([^`]+)`/g, '<code>$1</code>')
+            .replace(/\n/g, '<br>');
+          previewEl.innerHTML = raw || '<span style="color:#8b95a1;">작성된 본문이 없습니다.</span>';
+        } else if (previewEl && bodyEl) {
+          previewEl.classList.add('d-none');
+          bodyEl.classList.remove('d-none');
+          toolbarEl?.classList.remove('d-none');
+        }
+      });
+    });
+
+    function getTodayParts() {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      const hh = String(now.getHours()).padStart(2, '0');
+      const min = String(now.getMinutes()).padStart(2, '0');
+      return {
+        dateStr: `${yyyy}-${mm}-${dd}`,
+        dotDate: `${yyyy}. ${mm}. ${dd}`,
+        fullDate: `${yyyy}-${mm}-${dd} ${hh}:${min}:00 +0900`
+      };
+    }
+
+    function buildMarkdownFile() {
+      const { dateStr, fullDate } = getTodayParts();
+      const title = (titleEl?.value || '').trim() || '제목 없는 글';
+      const desc = (descEl?.value || '').trim();
+      const rawField = fieldEl?.value || '네트워크';
+      const fieldParts = rawField.split('|').map((s) => s.trim()).filter(Boolean);
+      const categories = [currentTab, ...fieldParts];
+      const tags = (tagsEl?.value || '')
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+
+      let slug = (slugEl?.value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9가-힣-]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+      if (!slug) {
+        slug = `${currentTab}-${Date.now().toString().slice(-6)}`;
+      }
+
+      const filename = `${dateStr}-${slug}.md`;
+      const frontMatter = [
+        '---',
+        `title: "${title.replace(/"/g, '\\"')}"`,
+        `date: ${fullDate}`,
+        `categories: [${categories.join(', ')}]`,
+        `tags: [${tags.join(', ')}]`,
+        desc ? `description: "${desc.replace(/"/g, '\\"')}"` : null,
+        '---',
+        '',
+        bodyEl?.value || ''
+      ]
+        .filter((line) => line !== null)
+        .join('\n');
+
+      return { filename, content: frontMatter, title, desc, fieldParts, dateStr };
+    }
+
+    function buildStdoutYamlItem() {
+      const { dateStr, dotDate } = getTodayParts();
+      const field = (fieldEl?.value || '네트워크').trim();
+      const content = (bodyEl?.value || '').trim();
+      const code = (codeEl?.value || '').trim();
+
+      const lines = [
+        `- field: ${field}`,
+        `  date: "${dateStr}"`,
+        `  content: "${content.replace(/"/g, '\\"')}"`
+      ];
+      if (code) {
+        lines.push(`  code: "${code.replace(/"/g, '\\"')}"`);
+      }
+      return { yaml: lines.join('\n') + '\n', field, dateStr, dotDate, content, code };
+    }
+
+    // 클립보드 복사
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        const text =
+          currentTab === 'stdout' ? buildStdoutYamlItem().yaml : buildMarkdownFile().content;
+        await navigator.clipboard.writeText(text);
+        setStatus('클립보드에 복사되었습니다.');
+      });
+    }
+
+    // .md 파일 다운로드
+    if (downloadBtn) {
+      downloadBtn.addEventListener('click', () => {
+        const { filename, content } = buildMarkdownFile();
+        const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        setStatus(`${filename} 파일이 다운로드되었습니다.`);
+      });
+    }
+
+    // UTF-8 문자열 -> Base64 인코딩
+    function toBase64Utf8(str) {
+      const bytes = new TextEncoder().encode(str);
+      let binary = '';
+      bytes.forEach((b) => (binary += String.fromCharCode(b)));
+      return btoa(binary);
+    }
+
+    function fromBase64Utf8(b64) {
+      const binary = atob(b64.replace(/\s/g, ''));
+      const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    }
+
+    // 화면 목록에 새 카드 즉시 추가
+    function prependCardToDom() {
+      const { dotDate } = getTodayParts();
+      if (currentTab === 'stdout') {
+        const listEl = document.getElementById('stdout-list');
+        if (!listEl) return;
+        const { field, content, code } = buildStdoutYamlItem();
+        const article = document.createElement('article');
+        article.className = 'stdout-row tab-filter-card';
+        article.dataset.fields = field;
+        article.innerHTML = `
+          <div class="stdout-row-meta">
+            <span class="stdout-row-field">${field}</span>
+            <span class="stdout-row-sep">·</span>
+            <time class="stdout-row-date">${dotDate}</time>
+          </div>
+          <p class="stdout-row-text">${content}</p>
+          ${code ? `<code class="stdout-row-code">${code}</code>` : ''}
+        `;
+        listEl.prepend(article);
+      } else {
+        const listEl = document.getElementById(`${currentTab}-post-list`);
+        if (!listEl) return;
+        const { title, desc, fieldParts } = buildMarkdownFile();
+        const article = document.createElement('article');
+        article.className = 'home-post-card tab-filter-card';
+        article.dataset.fields = fieldParts.join('|');
+        article.innerHTML = `
+          <a href="#" class="home-post-link">
+            <div class="home-post-meta">
+              <span class="hp-tab">${currentTab}</span>
+              <span class="hp-sep">/</span>
+              <span class="hp-field">${fieldParts.join(' · ')}</span>
+              <span class="hp-sep">/</span>
+              <time class="hp-date">${dotDate}</time>
+              <span class="hp-dot">·</span>
+              <span class="hp-read">방금 작성</span>
+            </div>
+            <h2 class="home-post-title">${title}</h2>
+            <p class="home-post-summary">${desc || (bodyEl?.value || '').slice(0, 120)}</p>
+          </a>
+        `;
+        listEl.prepend(article);
+        document.getElementById('tab-empty-msg')?.classList.add('d-none');
+      }
+    }
+
+    // GitHub 저장소에 바로 커밋/게시
+    if (publishBtn) {
+      publishBtn.addEventListener('click', async () => {
+        if (currentTab === 'stdout') {
+          if (!bodyEl?.value.trim()) {
+            setStatus('한 줄 IT 지식 내용을 입력해 주세요.', true);
+            bodyEl?.focus();
+            return;
+          }
+        } else {
+          if (!titleEl?.value.trim()) {
+            setStatus('글 제목을 입력해 주세요.', true);
+            titleEl?.focus();
+            return;
+          }
+        }
+
+        const token = (ghTokenInput?.value || localStorage.getItem(TOKEN_KEY) || '').trim();
+        if (!token) {
+          ghBox?.classList.remove('d-none');
+          ghTokenInput?.focus();
+          setStatus('GitHub에 바로 게시하려면 우측 상단 [GitHub 토큰 설정]에 토큰을 입력해 주세요.', true);
+          return;
+        }
+
+        publishBtn.disabled = true;
+        setStatus('GitHub 저장소에 게시 중...');
+
+        try {
+          if (currentTab === 'stdout') {
+            const path = '_data/stdout.yml';
+            const getRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/vnd.github+json'
+              }
+            });
+
+            let existingText = '';
+            let sha = undefined;
+            if (getRes.ok) {
+              const data = await getRes.json();
+              sha = data.sha;
+              existingText = fromBase64Utf8(data.content);
+            }
+
+            const { yaml, field } = buildStdoutYamlItem();
+            const updatedText = `${yaml}\n${existingText.trimStart()}`;
+
+            const putRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+              method: 'PUT',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                message: `docs(stdout): ${field} 한 줄 지식 추가`,
+                content: toBase64Utf8(updatedText),
+                sha
+              })
+            });
+
+            if (!putRes.ok) {
+              throw new Error(`GitHub API 오류 (${putRes.status})`);
+            }
+
+            prependCardToDom();
+            bodyEl.value = '';
+            if (codeEl) codeEl.value = '';
+            setStatus('GitHub 저장소(_data/stdout.yml)에 성공적으로 게시되었습니다!');
+          } else {
+            const { filename, content, title } = buildMarkdownFile();
+            const path = `_posts/${filename}`;
+
+            const putRes = await fetch(`https://api.github.com/repos/${GH_REPO}/contents/${path}`, {
+              method: 'PUT',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: 'application/vnd.github+json',
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                message: `post(${currentTab}): ${title}`,
+                content: toBase64Utf8(content)
+              })
+            });
+
+            if (!putRes.ok) {
+              throw new Error(`GitHub API 오류 (${putRes.status})`);
+            }
+
+            prependCardToDom();
+            setStatus(`GitHub 저장소(_posts/${filename})에 성공적으로 게시되었습니다!`);
+          }
+        } catch (err) {
+          setStatus(`게시 실패: ${err.message}. 토큰 권한(repo/contents)을 확인해 주세요.`, true);
+        } finally {
+          publishBtn.disabled = false;
+        }
+      });
+    }
+  });
+</script>
