@@ -1,28 +1,12 @@
-# 오른쪽 패널의 "목차". 여기 적은 순서 그대로 그려진다.
-#
-# - 글이 1편 이상인 항목만 링크가 걸린다.
-# - 0편인 항목은 흐리게, 링크 없이 표시된다 = "아직 안 쓴 것" 목록 역할.
-#   (없는 카테고리 페이지로 링크를 걸면 htmlproofer가 빌드를 실패시킨다)
-# - 글의 front matter `categories: [대분류, 소분류]` 와 이름이 정확히 같아야 집계된다.
+# 오른쪽 패널의 "분야 카테고리" 체크박스 목차. 여기 적은 순서 그대로 그려진다.
 
-- name: Linux
-- name: Git/GitHub
-- name: CI/CD
-  children:
-    - Jenkins
-    - Argo CD
-    - GitOps
-- name: IaC
-  children:
-    - Terraform
-    - Ansible
-- name: Docker
-- name: Kubernetes
-- name: AWS
-- name: 모니터링
-  children:
-    - Grafana
-    - Prometheus
-    - Loki
 - name: 네트워크
+- name: Linux
+- name: IaC
+- name: CI/CD
+- name: Kubernetes
+- name: Docker
+- name: 모니터링
+- name: AWS
+- name: Git/GitHub
 - name: 개발환경
