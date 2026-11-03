@@ -1,0 +1,28 @@
+# stdout 탭 한 줄 IT 잡학 지식 데이터
+# 각 항목은 field(분야), date(날짜), content(내용), code(선택 명령어/키워드)로 구성된다.
+
+- field: 네트워크
+  date: "2026-11-02"
+  content: "TCP TIME_WAIT 소켓은 마지막 ACK 유실에 대비하고 지연 패킷이 새 연결에 섞이는 것을 막기 위해 기본적으로 2MSL(리눅스 기준 약 60초) 동안 유지된다."
+  code: "ss -tan state time-wait | wc -l"
+
+- field: Linux
+  date: "2026-10-28"
+  content: "디스크 용량(df -h)이 넉넉한데 'No space left on device'가 발생한다면 작은 파일이 대량 생성되어 inode가 고갈되었을 가능성이 높다."
+  code: "df -i"
+
+- field: Kubernetes
+  date: "2026-10-20"
+  content: "Pod이 Terminating 상태에서 멈춰 있을 때는 컨테이너 프로세스가 SIGTERM을 무시하고 있는지 확인하고, grace period(기본 30초) 이후 SIGKILL이 전달된다."
+  code: "kubectl get pod -o yaml"
+
+- field: Docker
+  date: "2026-10-14"
+  content: "컨테이너 내부에서 PID 1로 셸 스크립트(/bin/sh)가 직접 실행되면 자식 좀비 프로세스를 회수하지 못하고 SIGTERM 시그널 전달도 누락될 수 있으므로 tini나 exec 모드를 사용한다."
+  code: "docker run --init"
+
+- field: Git/GitHub
+  date: "2026-10-05"
+  content: "git reset --hard로 실수로 날린 커밋도 가비지 컬렉션 전(기본 30~90일)이라면 reflog에서 HEAD 이동 기록을 찾아 언제든 복구할 수 있다."
+  code: "git reflog"
+

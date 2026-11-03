@@ -1,0 +1,281 @@
+<!-- 상단 네비게이션 바 (토스 기술블로그 GNB 스타일) -->
+
+<header id="topbar-wrapper" class="flex-shrink-0" aria-label="Top Bar">
+  <div
+    id="topbar"
+    class="d-flex align-items-center justify-content-between px-lg-3 h-100"
+  >
+    <!-- 왼쪽 상단: 브로콜리/나무 아이콘 + 블로그 이름(홈) -->
+    <a id="gnb-brand" href="{{ '/' | relative_url }}">
+      <svg class="gnb-brand-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" aria-hidden="true">
+        <rect x="56" y="72" width="16" height="34" rx="5" fill="#785230" />
+        <circle cx="43" cy="59" r="20" fill="#2d6a4f" />
+        <circle cx="85" cy="59" r="20" fill="#2d6a4f" />
+        <circle cx="64" cy="43" r="24" fill="#40916c" />
+        <circle cx="52" cy="64" r="18" fill="#40916c" />
+        <circle cx="76" cy="64" r="18" fill="#40916c" />
+      </svg>
+      <span>{% if site.title == '©sunga' %}sungashell{% else %}{{- site.title -}}{% endif %}</span>
+    </a>
+
+    <!-- Chirpy 번들 JS 호환용 숨김 트리거 -->
+    <button type="button" id="sidebar-trigger" class="btn btn-link d-none" aria-label="Sidebar">
+      <i class="fas fa-bars fa-fw"></i>
+    </button>
+
+    <!-- 오른쪽 상단: 탭(syslog, root, stdout) + 돋보기 검색 -->
+    <div class="gnb-right d-flex align-items-center ms-auto">
+      <nav id="topbar-title" class="gnb-nav" aria-label="Global Navigation">
+        <ul class="gnb-tabs list-unstyled d-flex align-items-center mb-0">
+          {% for tab in site.tabs %}
+            {% capture tab_name %}{{ tab.url | split: '/' }}{% endcapture %}
+            {% assign tab_key = tab.tab_id | default: tab.title | downcase %}
+            {% if tab_key == 'syslog' or tab_key == 'root' or tab_key == 'stdout' %}
+              {% assign active = nil %}
+              {% if page.url == tab.url %}
+                {% assign active = 'active' %}
+              {% endif %}
+              <li class="gnb-tab-item">
+                <a href="{{ tab.url | relative_url }}" class="gnb-tab-link{% if active %} {{ active }}{% endif %}">
+                  {{- tab.title | default: tab_name -}}
+                </a>
+              </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </nav>
+
+      <button type="button" id="search-trigger" class="btn btn-link gnb-search-btn" aria-label="Search">
+        <i class="fas fa-search fa-fw"></i>
+      </button>
+
+      <search id="search" class="align-items-center">
+        <i class="fas fa-search fa-fw"></i>
+        <input
+          class="form-control"
+          id="search-input"
+          type="search"
+          aria-label="search"
+          autocomplete="off"
+          placeholder="제목, 내용 검색..."
+        >
+      </search>
+      <button type="button" class="btn btn-link text-decoration-none" id="search-cancel">
+        {{- site.data.locales[lang].search.cancel | default: '취소' -}}
+      </button>
+    </div>
+  </div>
+</header>
+
+<style>
+  /* ── 왼쪽 사이드바 제거 및 중앙 정렬 레이아웃 ── */
+  #sidebar {
+    display: none !important;
+  }
+
+  #main-wrapper {
+    margin-left: 0 !important;
+  }
+
+  #toc-popup {
+    left: 0 !important;
+  }
+
+  @media all and (min-width: 1400px) {
+    #back-to-top {
+      right: calc((100vw - 1140px) / 2 + 2rem);
+    }
+  }
+
+  @media all and (min-width: 1650px) {
+    #back-to-top {
+      right: calc((100vw - 1250px) / 2 + 2rem);
+    }
+  }
+
+  @media all and (max-width: calc(850px - 1px)) {
+    h1.dynamic-title {
+      display: block !important;
+      margin-top: 1.5rem;
+    }
+
+    h1.dynamic-title ~ .content {
+      margin-top: 1.5rem !important;
+    }
+  }
+
+  /* ── 토스 기술블로그 스타일 상단 GNB ── */
+  #topbar-wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    height: 3.75rem;
+    background-color: rgba(255, 255, 255, 0.88);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border-bottom: 1px solid rgba(0, 27, 55, 0.07);
+  }
+
+  #topbar {
+    gap: 1rem;
+  }
+
+  #gnb-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: #191f28;
+    text-decoration: none;
+    white-space: nowrap;
+    border-bottom: none !important;
+    transition: opacity 0.15s ease;
+  }
+
+  #gnb-brand:hover {
+    color: #191f28;
+    opacity: 0.8;
+  }
+
+  .gnb-brand-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+    flex: 0 0 auto;
+  }
+
+  .gnb-right {
+    gap: 0.35rem;
+  }
+
+  #topbar-title.gnb-nav {
+    display: flex;
+    align-items: center;
+    width: auto;
+    text-align: left;
+  }
+
+  .gnb-tabs {
+    gap: 0.25rem;
+    margin-right: 0.25rem;
+  }
+
+  .gnb-tab-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.42rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.94rem;
+    font-weight: 500;
+    color: #4e5968;
+    text-decoration: none;
+    border-bottom: none !important;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .gnb-tab-link:hover {
+    color: #191f28 !important;
+    background-color: #f2f4f6;
+    border-bottom: none !important;
+  }
+
+  .gnb-tab-link.active {
+    color: #3182f6;
+    background-color: #e8f3ff;
+    font-weight: 600;
+  }
+
+  /* ── 돋보기 검색 버튼 & 펼쳐지는 검색창 ── */
+  #sidebar-trigger {
+    display: none !important;
+  }
+
+  #search-trigger.gnb-search-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border-radius: 8px;
+    color: #4e5968;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  #search-trigger.gnb-search-btn:hover {
+    background-color: #f2f4f6;
+    color: #191f28;
+  }
+
+  #search-trigger.gnb-search-btn i {
+    color: inherit;
+    font-size: 0.95rem;
+  }
+
+  #topbar #search {
+    display: none;
+    width: min(21rem, 56vw);
+    max-width: none;
+    margin-right: 0;
+    padding: 0.12rem 0.75rem;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    background: #f2f4f6;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+  }
+
+  #topbar #search:focus-within {
+    border-color: #3182f6;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.12);
+  }
+
+  #search-cancel {
+    margin-left: 0.35rem;
+    padding: 0.3rem 0.55rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: #4e5968;
+  }
+
+  #search-cancel:hover {
+    background-color: #f2f4f6;
+    color: #191f28;
+  }
+
+  @media (max-width: 575px) {
+    #gnb-brand {
+      font-size: 1.02rem;
+    }
+
+    .gnb-tab-link {
+      padding: 0.35rem 0.55rem;
+      font-size: 0.86rem;
+    }
+
+    #topbar #search {
+      width: 52vw;
+    }
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-input');
+    const searchCancel = document.getElementById('search-cancel');
+
+    if (searchCancel && searchInput) {
+      searchCancel.addEventListener('click', () => {
+        searchInput.value = '';
+      });
+
+      searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && searchCancel.classList.contains('d-block')) {
+          searchCancel.click();
+        }
+      });
+    }
+  });
+</script>

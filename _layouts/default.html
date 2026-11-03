@@ -8,7 +8,7 @@ layout: compress
 
 {% include lang.html %}
 
-<!-- `site.alt_lang` can specify a language different from the UI -->
+<!-- `site.alt_lang`으로 UI와 다른 언어를 별도 지정할 수 있다 -->
 <html
   lang="{{ page.lang | default: site.alt_lang | default: site.lang }}"
   {%- if site.theme_mode == 'light' or site.theme_mode == 'dark' -%}
@@ -26,20 +26,21 @@ layout: compress
 
         <div class="row flex-grow-1">
           <main aria-label="Main Content" class="col-12 col-lg-11 col-xl-9 px-md-4">
-            {% if layout.layout == 'default' %}
+            {% if layout.layout == 'default' and page.tab_id == nil and page.layout != 'home' %}
               {% include refactor-content.html content=content lang=lang %}
             {% else %}
               {{ content }}
             {% endif %}
           </main>
 
-          <!-- panel -->
+          <!-- 우측 패널: 홈 화면에서는 인기글, syslog/root/stdout 탭에서는 분야 카테고리 체크박스 표시 -->
           <aside aria-label="Panel" id="panel-wrapper" class="col-xl-3 ps-2 text-muted">
             <div class="access">
-              {%- comment -%} 테마 원본(v7.6.0)에 category-tree 한 줄만 추가했다 {%- endcomment -%}
-              {% include_cached category-tree.html lang=lang %}
-              {% include_cached update-list.html lang=lang %}
-              {% include_cached trending-tags.html lang=lang %}
+              {%- if page.tab_id == 'syslog' or page.tab_id == 'root' or page.tab_id == 'stdout' -%}
+                {% include field-filter.html lang=lang %}
+              {%- else -%}
+                {% include_cached popular-posts.html lang=lang %}
+              {%- endif -%}
             </div>
 
             {% for _include in layout.panel_includes %}
@@ -50,7 +51,7 @@ layout: compress
         </div>
 
         <div class="row">
-          <!-- tail -->
+          <!-- 하단 영역 -->
           <div id="tail-wrapper" class="col-12 col-lg-11 col-xl-9 px-md-4">
             {% for _include in layout.tail_includes %}
               {% assign _include_path = _include | append: '.html' %}
@@ -77,7 +78,7 @@ layout: compress
       {% include_cached notification.html lang=lang %}
     {% endif %}
 
-    <!-- Embedded scripts -->
+    <!-- 내장 스크립트 -->
 
     {% for _include in layout.script_includes %}
       {% assign _include_path = _include | append: '.html' %}

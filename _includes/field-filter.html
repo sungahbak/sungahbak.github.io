@@ -1,0 +1,316 @@
+{%- comment -%}
+  syslog · root 탭 우측 패널의 체크박스 카테고리 박스.
+  첨부해주신 토스 기술블로그 스크린샷(직무 카테고리 + 우측 상단 흰색 알약 '초기화' 버튼 +
+  연회색 #f6f7f9 라운드 배경 + 회색 사각 체크박스 + 숫자 배지 없음)을 그대로 재현한다.
+{%- endcomment -%}
+
+{%- assign tree = site.data.category_tree -%}
+
+{%- if tree and tree.size > 0 -%}
+  <section id="access-field-filter" aria-label="분야 카테고리">
+    <div class="ff-header">
+      <h2 class="ff-title">분야 카테고리</h2>
+      <button type="button" id="field-filter-reset" class="ff-reset-btn">
+        초기화
+      </button>
+    </div>
+
+    <ul class="ff-list list-unstyled mb-0">
+      {%- for node in tree -%}
+        {%- assign children_csv = '' -%}
+        {%- if node.children -%}
+          {%- assign children_csv = node.children | join: '|' -%}
+        {%- endif -%}
+
+        <li class="ff-item">
+          <label class="ff-label">
+            <input
+              type="checkbox"
+              class="ff-checkbox ff-parent-cb"
+              value="{{ node.name }}"
+              data-field="{{ node.name }}"
+              data-children="{{ children_csv }}"
+            >
+            <span class="ff-box" aria-hidden="true">
+              <svg viewBox="0 0 12 10" fill="none">
+                <path d="M1.5 5.2L4.6 8.2L10.5 1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="ff-name">{{ node.name }}</span>
+          </label>
+        </li>
+
+        {%- if node.children -%}
+          {%- for child in node.children -%}
+            <li class="ff-item ff-child">
+              <label class="ff-label">
+                <input
+                  type="checkbox"
+                  class="ff-checkbox ff-child-cb"
+                  value="{{ child }}"
+                  data-field="{{ child }}"
+                  data-parent="{{ node.name }}"
+                >
+                <span class="ff-box" aria-hidden="true">
+                  <svg viewBox="0 0 12 10" fill="none">
+                    <path d="M1.5 5.2L4.6 8.2L10.5 1.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+                <span class="ff-name">{{ child }}</span>
+              </label>
+            </li>
+          {%- endfor -%}
+        {%- endif -%}
+      {%- endfor -%}
+    </ul>
+  </section>
+{%- endif -%}
+
+<style>
+  /* 1200px 미만 화면에서도 우측 체크박스 박스가 보이도록 처리 */
+  @media (max-width: 1199px) {
+    #panel-wrapper {
+      display: block !important;
+      width: 100%;
+      margin-top: 1.5rem;
+    }
+  }
+
+  /* 토스 기술블로그 '직무 카테고리' 박스 디자인 1:1 재현 */
+  #access-field-filter {
+    background-color: #f6f7f9;
+    border: none;
+    border-radius: 20px;
+    padding: 24px 22px !important;
+    box-shadow: none;
+  }
+
+  .ff-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .ff-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: #333d4b;
+  }
+
+  /* 우측 상단 흰색 알약 '초기화' 버튼 */
+  .ff-reset-btn {
+    border: none;
+    background-color: #ffffff;
+    color: #8b95a1;
+    font-size: 0.84rem;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .ff-reset-btn:hover {
+    background-color: #ebedf0;
+    color: #4e5968;
+  }
+
+  .ff-reset-btn.is-active {
+    color: #333d4b;
+    font-weight: 600;
+  }
+
+  .ff-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ff-item {
+    margin: 0;
+    padding: 0;
+  }
+
+  .ff-item.ff-child {
+    padding-left: 24px;
+  }
+
+  .ff-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 11px;
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+    padding: 2px 0;
+  }
+
+  .ff-checkbox {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  /* 스크린샷과 동일한 연회색(#e5e8eb) 라운드 사각 체크박스 */
+  .ff-box {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background-color: #e5e8eb;
+    border: 1px solid #d1d6db;
+    color: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+
+  .ff-box svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  .ff-label:hover .ff-box {
+    background-color: #d9dde2;
+    border-color: #c4cad0;
+  }
+
+  .ff-checkbox:checked + .ff-box {
+    background-color: #3182f6;
+    border-color: #3182f6;
+    color: #ffffff;
+  }
+
+  .ff-checkbox:indeterminate + .ff-box {
+    background-color: #3182f6;
+    border-color: #3182f6;
+    position: relative;
+  }
+
+  .ff-checkbox:indeterminate + .ff-box::after {
+    content: '';
+    width: 10px;
+    height: 2px;
+    border-radius: 1px;
+    background-color: #ffffff;
+  }
+
+  .ff-name {
+    font-size: 0.95rem;
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
+    color: #4e5968;
+    transition: color 0.15s ease;
+  }
+
+  .ff-label:hover .ff-name {
+    color: #191f28;
+  }
+
+  .ff-checkbox:checked ~ .ff-name {
+    color: #191f28;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const filterSection = document.getElementById('access-field-filter');
+    if (!filterSection) return;
+
+    const parentCbs = Array.from(filterSection.querySelectorAll('.ff-parent-cb'));
+    const childCbs = Array.from(filterSection.querySelectorAll('.ff-child-cb'));
+    const allCbs = Array.from(filterSection.querySelectorAll('.ff-checkbox'));
+    const resetBtn = document.getElementById('field-filter-reset');
+
+    function syncParentState(parentName) {
+      const parentCb = parentCbs.find((cb) => cb.dataset.field === parentName);
+      if (!parentCb) return;
+      const children = childCbs.filter((cb) => cb.dataset.parent === parentName);
+      if (children.length === 0) return;
+
+      const checkedCount = children.filter((cb) => cb.checked).length;
+      if (checkedCount === 0) {
+        parentCb.checked = false;
+        parentCb.indeterminate = false;
+      } else if (checkedCount === children.length) {
+        parentCb.checked = true;
+        parentCb.indeterminate = false;
+      } else {
+        parentCb.checked = false;
+        parentCb.indeterminate = true;
+      }
+    }
+
+    function getSelectedFields() {
+      const selected = new Set();
+      parentCbs.forEach((pCb) => {
+        if (pCb.checked) {
+          selected.add(pCb.dataset.field);
+          const childrenStr = pCb.dataset.children || '';
+          childrenStr
+            .split('|')
+            .map((s) => s.trim())
+            .filter(Boolean)
+            .forEach((c) => selected.add(c));
+        }
+      });
+      childCbs.forEach((cCb) => {
+        if (cCb.checked) {
+          selected.add(cCb.dataset.field);
+        }
+      });
+      return Array.from(selected);
+    }
+
+    function notifyChange() {
+      const selected = getSelectedFields();
+      if (resetBtn) {
+        resetBtn.classList.toggle('is-active', selected.length > 0);
+      }
+      window.dispatchEvent(
+        new CustomEvent('fieldFilterChange', {
+          detail: { selectedFields: selected }
+        })
+      );
+    }
+
+    parentCbs.forEach((pCb) => {
+      pCb.addEventListener('change', () => {
+        const parentName = pCb.dataset.field;
+        pCb.indeterminate = false;
+        childCbs
+          .filter((cCb) => cCb.dataset.parent === parentName)
+          .forEach((cCb) => {
+            cCb.checked = pCb.checked;
+          });
+        notifyChange();
+      });
+    });
+
+    childCbs.forEach((cCb) => {
+      cCb.addEventListener('change', () => {
+        syncParentState(cCb.dataset.parent);
+        notifyChange();
+      });
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        allCbs.forEach((cb) => {
+          cb.checked = false;
+          cb.indeterminate = false;
+        });
+        notifyChange();
+      });
+    }
+  });
+</script>
+

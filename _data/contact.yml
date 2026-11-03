@@ -1,22 +1,21 @@
-#  The contact options.
+# 하단 푸터 연락처 및 외부 계정 링크 설정 (GitHub, LinkedIn, Email, Threads)
 
 - type: github
   icon: "fab fa-github"
+  label: "GitHub"
 
-- type: rss
-  icon: "fas fa-rss"
-  noblank: true # open link in current tab
+- type: linkedin
+  icon: "fab fa-linkedin"
+  label: "LinkedIn"
+  url: "https://www.linkedin.com/in/%EC%84%B1%EC%95%84-%EB%B0%95-25b065379/"
 
-# Uncomment and complete the url below to enable more contact options
-#
-# - type: email
-#   icon: 'fas fa-envelope'
-#   noblank: true
-#
-# - type: linkedin
-#   icon: 'fab fa-linkedin'
-#   url:  ''
-#
-# - type: stack-overflow
-#   icon: 'fab fa-stack-overflow'
-#   url:  ''
+- type: email
+  icon: "fas fa-envelope"
+  label: "Email"
+  url: "mailto:pasunga12@naver.com"
+  noblank: true
+
+- type: threads
+  icon: "fa-brands fa-threads"
+  label: "Threads"
+  url: "https://www.threads.com/@_sungapark?hl=ko" 

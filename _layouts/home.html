@@ -9,137 +9,336 @@ layout: default
 
 {% assign posts = '' | split: '' %}
 
-<!-- Get pinned posts on current page -->
+{% if paginator %}
+  <!-- 현재 페이지에 표시할 고정(pinned) 글 계산 -->
+  {% assign visible_start = paginator.page | minus: 1 | times: paginator.per_page %}
+  {% assign visible_end = visible_start | plus: paginator.per_page %}
 
-{% assign visible_start = paginator.page | minus: 1 | times: paginator.per_page %}
-{% assign visible_end = visible_start | plus: paginator.per_page %}
+  {% if all_pinned.size > visible_start %}
+    {% if all_pinned.size > visible_end %}
+      {% assign pinned_size = paginator.per_page %}
+    {% else %}
+      {% assign pinned_size = all_pinned.size | minus: visible_start %}
+    {% endif %}
 
-{% if all_pinned.size > visible_start %}
-  {% if all_pinned.size > visible_end %}
-    {% assign pinned_size = paginator.per_page %}
+    {% for i in (visible_start..all_pinned.size) limit: pinned_size %}
+      {% assign posts = posts | push: all_pinned[i] %}
+    {% endfor %}
   {% else %}
-    {% assign pinned_size = all_pinned.size | minus: visible_start %}
+    {% assign pinned_size = 0 %}
   {% endif %}
 
-  {% for i in (visible_start..all_pinned.size) limit: pinned_size %}
-    {% assign posts = posts | push: all_pinned[i] %}
-  {% endfor %}
+  <!-- 현재 페이지에 표시할 일반 글 계산 (페이지당 최대 6개) -->
+  {% assign normal_size = paginator.posts | size | minus: pinned_size %}
+
+  {% if normal_size > 0 %}
+    {% if pinned_size > 0 %}
+      {% assign normal_start = 0 %}
+    {% else %}
+      {% assign normal_start = visible_start | minus: all_pinned.size %}
+    {% endif %}
+
+    {% assign normal_end = normal_start | plus: normal_size | minus: 1 %}
+
+    {% for i in (normal_start..normal_end) %}
+      {% assign posts = posts | push: all_normal[i] %}
+    {% endfor %}
+  {% endif %}
 {% else %}
-  {% assign pinned_size = 0 %}
+  {% assign posts = site.posts | where_exp: 'item', 'item.hidden != true' | slice: 0, 6 %}
 {% endif %}
 
-<!-- Get normal posts on current page -->
-
-{% assign normal_size = paginator.posts | size | minus: pinned_size %}
-
-{% if normal_size > 0 %}
-  {% if pinned_size > 0 %}
-    {% assign normal_start = 0 %}
-  {% else %}
-    {% assign normal_start = visible_start | minus: all_pinned.size %}
-  {% endif %}
-
-  {% assign normal_end = normal_start | plus: normal_size | minus: 1 %}
-
-  {% for i in (normal_start..normal_end) %}
-    {% assign posts = posts | push: all_normal[i] %}
-  {% endfor %}
-{% endif %}
-
-<!-- 테마 원본(v7.6.0)에 아래 기여 그래프 블록만 추가했다 -->
-<div class="home-heatmap px-xl-1 mb-4">
-  {% include post-heatmap.html %}
-</div>
-
-<div id="post-list" class="flex-grow-1 px-xl-1">
+<!-- 페이지당 최대 6개 글 목록 (토스 기술블로그 카드 스타일) -->
+<div id="post-list" class="home-post-list flex-grow-1 px-xl-1">
   {% for post in posts %}
-    <article class="card-wrapper card">
-      <a href="{{ post.url | relative_url }}" class="post-preview row g-0 flex-md-row-reverse">
-        {% assign card_body_col = '12' %}
+    {% assign first_cat = post.categories[0] | downcase %}
+    {% if first_cat == 'syslog' or first_cat == 'root' or first_cat == 'stdout' %}
+      {% assign tab_name = first_cat %}
+      {% assign field_list = post.categories | slice: 1, post.categories.size %}
+    {% else %}
+      {% if post.tags contains '개념' or post.tags contains 'root' %}
+        {% assign tab_name = 'root' %}
+      {% else %}
+        {% assign tab_name = 'syslog' %}
+      {% endif %}
+      {% assign field_list = post.categories %}
+    {% endif %}
+    {% if field_list.size > 0 %}
+      {% assign field_name = field_list | join: ' · ' %}
+    {% else %}
+      {% assign field_name = '일반' %}
+    {% endif %}
 
-        {% if post.image %}
-          {% assign src = post.image.path | default: post.image %}
+    {% assign words = post.content | strip_html | number_of_words %}
+    {% assign read_min = words | divided_by: 180 | at_least: 1 %}
 
-          {% if post.media_subpath %}
-            {% unless src contains '://' %}
-              {% assign src = post.media_subpath
-                | append: '/'
-                | append: src
-                | replace: '///', '/'
-                | replace: '//', '/'
-              %}
-            {% endunless %}
-          {% endif %}
-
-          {% if post.image.lqip %}
-            {% assign lqip = post.image.lqip %}
-
-            {% if post.media_subpath %}
-              {% unless lqip contains 'data:' %}
-                {% assign lqip = post.media_subpath
-                  | append: '/'
-                  | append: lqip
-                  | replace: '///', '/'
-                  | replace: '//', '/'
-                %}
-              {% endunless %}
-            {% endif %}
-
-            {% assign lqip_attr = 'lqip="' | append: lqip | append: '"' %}
-          {% endif %}
-
-          {% assign alt = post.image.alt | xml_escape | default: 'Preview Image' %}
-
-          <div class="col-md-5">
-            <img src="{{ src }}" alt="{{ alt }}" {{ lqip_attr }}>
-          </div>
-
-          {% assign card_body_col = '7' %}
-        {% endif %}
-
-        <div class="col-md-{{ card_body_col }}">
-          <div class="card-body d-flex flex-column">
-            <h1 class="card-title my-2 mt-md-0">{{ post.title }}</h1>
-
-            <div class="card-text content mt-0 mb-3">
-              <p>{% include post-summary.html %}</p>
-            </div>
-
-            <div class="post-meta flex-grow-1 d-flex align-items-end">
-              <div class="me-auto">
-                <!-- posted date -->
-                <i class="far fa-calendar fa-fw me-1"></i>
-                {% include datetime.html date=post.date lang=lang %}
-
-                <!-- categories -->
-                {% if post.categories.size > 0 %}
-                  <i class="far fa-folder-open fa-fw me-1"></i>
-                  <span class="categories">
-                    {% for category in post.categories %}
-                      {{ category }}
-                      {%- unless forloop.last -%},{%- endunless -%}
-                    {% endfor %}
-                  </span>
-                {% endif %}
-              </div>
-
-              {% if post.pin %}
-                <div class="pin ms-1">
-                  <i class="fas fa-thumbtack fa-fw"></i>
-                  <span>{{ site.data.locales[lang].post.pin_prompt }}</span>
-                </div>
-              {% endif %}
-            </div>
-            <!-- .post-meta -->
-          </div>
-          <!-- .card-body -->
+    <article class="home-post-card">
+      <a href="{{ post.url | relative_url }}" class="home-post-link">
+        <!-- 제일 위: 탭이름 / 분야 / 날짜 · 몇분 읽기 -->
+        <div class="home-post-meta">
+          <span class="hp-tab">{{ tab_name }}</span>
+          <span class="hp-sep">/</span>
+          <span class="hp-field">{{ field_name }}</span>
+          <span class="hp-sep">/</span>
+          <time class="hp-date" datetime="{{ post.date | date_to_xmlschema }}">
+            {{- post.date | date: '%Y. %m. %d' -}}
+          </time>
+          <span class="hp-dot">·</span>
+          <span class="hp-read">{{ read_min }}분 읽기</span>
         </div>
+
+        <!-- 그 아래: 제목 -->
+        <h2 class="home-post-title">{{ post.title }}</h2>
+
+        <!-- 그 아래: 세부사항(요약) -->
+        <p class="home-post-summary">{% include post-summary.html %}</p>
       </a>
     </article>
   {% endfor %}
 </div>
-<!-- #post-list -->
 
-{% if paginator.total_pages > 1 %}
-  {% include post-paginator.html %}
-{% endif %}
+<!-- 하단 페이지네이션 (< 1 2 3 4 ... >) -->
+{% assign cur_page = paginator.page | default: 1 %}
+{% assign total_pages = paginator.total_pages | default: 1 %}
+{% assign pag_pattern = site.paginate_path | default: '/page:num/' %}
+
+<nav class="home-pagination px-xl-1" aria-label="페이지 탐색">
+  {% if paginator.previous_page %}
+    <a
+      href="{{ paginator.previous_page_path | relative_url }}"
+      class="hp-page-btn hp-arrow"
+      aria-label="이전 페이지"
+    >&lt;</a>
+  {% else %}
+    <span class="hp-page-btn hp-arrow disabled" aria-disabled="true">&lt;</span>
+  {% endif %}
+
+  {% assign left_edge = cur_page | minus: 2 %}
+  {% assign right_edge = cur_page | plus: 2 %}
+  {% assign show_left_ellipsis = false %}
+  {% assign show_right_ellipsis = false %}
+
+  {% if total_pages > 7 %}
+    {% if left_edge > 2 %}
+      {% assign show_left_ellipsis = true %}
+    {% endif %}
+    {% assign penultimate = total_pages | minus: 1 %}
+    {% if right_edge < penultimate %}
+      {% assign show_right_ellipsis = true %}
+    {% endif %}
+  {% endif %}
+
+  {% for p in (1..total_pages) %}
+    {% assign show_page = false %}
+    {% if total_pages <= 7 %}
+      {% assign show_page = true %}
+    {% elsif p == 1 or p == total_pages %}
+      {% assign show_page = true %}
+    {% elsif p >= left_edge and p <= right_edge %}
+      {% assign show_page = true %}
+    {% elsif p == 2 and show_left_ellipsis == false %}
+      {% assign show_page = true %}
+    {% else %}
+      {% assign penultimate = total_pages | minus: 1 %}
+      {% if p == penultimate and show_right_ellipsis == false %}
+        {% assign show_page = true %}
+      {% endif %}
+    {% endif %}
+
+    {% if show_page %}
+      {% if p == 1 %}
+        {% assign p_url = '/' | relative_url %}
+      {% else %}
+        {% assign p_url = pag_pattern | replace: ':num', p | relative_url %}
+      {% endif %}
+
+      {% if p == cur_page %}
+        <span class="hp-page-btn active" aria-current="page">{{ p }}</span>
+      {% else %}
+        <a href="{{ p_url }}" class="hp-page-btn">{{ p }}</a>
+      {% endif %}
+    {% elsif p == 2 and show_left_ellipsis %}
+      <span class="hp-page-ellipsis">…</span>
+    {% else %}
+      {% assign penultimate = total_pages | minus: 1 %}
+      {% if p == penultimate and show_right_ellipsis %}
+        <span class="hp-page-ellipsis">…</span>
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+
+  {% if paginator.next_page %}
+    <a
+      href="{{ paginator.next_page_path | relative_url }}"
+      class="hp-page-btn hp-arrow"
+      aria-label="다음 페이지"
+    >&gt;</a>
+  {% else %}
+    <span class="hp-page-btn hp-arrow disabled" aria-disabled="true">&gt;</span>
+  {% endif %}
+</nav>
+
+<style>
+  .home-post-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.75rem;
+  }
+
+  .home-post-card {
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 27, 55, 0.06);
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0, 27, 55, 0.04), 0 1px 2px rgba(0, 27, 55, 0.02);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+
+  .home-post-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(49, 130, 246, 0.2);
+    box-shadow: 0 8px 24px rgba(0, 27, 55, 0.07);
+  }
+
+  .home-post-link {
+    display: block;
+    padding: 1.5rem 1.7rem;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: none !important;
+  }
+
+  .home-post-link:hover {
+    border-bottom: none !important;
+  }
+
+  /* 1줄: 탭이름 / 분야 / 날짜 · 몇분 읽기 */
+  .home-post-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.84rem;
+    line-height: 1.4;
+    color: #8b95a1;
+  }
+
+  .home-post-meta .hp-tab {
+    font-weight: 600;
+    color: #3182f6;
+  }
+
+  .home-post-meta .hp-field {
+    font-weight: 500;
+    color: #4e5968;
+  }
+
+  .home-post-meta .hp-sep,
+  .home-post-meta .hp-dot {
+    color: #d1d6db;
+  }
+
+  .home-post-meta .hp-date,
+  .home-post-meta .hp-read {
+    color: #8b95a1;
+  }
+
+  /* 2줄: 제목 */
+  .home-post-title {
+    margin: 0 0 0.45rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.42;
+    letter-spacing: -0.025em;
+    color: #191f28;
+    transition: color 0.16s ease;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .home-post-link:hover .home-post-title {
+    color: #3182f6;
+  }
+
+  /* 3줄: 세부사항(요약) */
+  .home-post-summary {
+    margin: 0;
+    font-size: 0.94rem;
+    line-height: 1.62;
+    letter-spacing: -0.015em;
+    color: #4e5968;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* 하단 페이지네이션 (< 1 2 3 4 ... >) */
+  .home-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    margin: 2.25rem 0 1.5rem;
+    user-select: none;
+  }
+
+  .hp-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.2rem;
+    height: 2.2rem;
+    padding: 0 0.5rem;
+    border-radius: 999px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6b7684;
+    background-color: transparent;
+    border: none !important;
+    text-decoration: none;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  a.hp-page-btn:hover {
+    background-color: #f2f4f6;
+    color: #191f28 !important;
+  }
+
+  .hp-page-btn.active {
+    background-color: #f2f4f6;
+    color: #191f28;
+    font-weight: 700;
+  }
+
+  .hp-page-btn.disabled {
+    color: #d1d6db;
+    cursor: default;
+  }
+
+  .hp-page-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.75rem;
+    height: 2.2rem;
+    color: #8b95a1;
+  }
+
+  @media (max-width: 575px) {
+    .home-post-link {
+      padding: 1.25rem 1.3rem;
+    }
+
+    .home-post-title {
+      font-size: 1.12rem;
+    }
+
+    .home-post-summary {
+      font-size: 0.9rem;
+    }
+  }
+</style>
