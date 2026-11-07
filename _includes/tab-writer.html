@@ -11,14 +11,17 @@
 
 <header class="tab-clean-header tab-header-with-action">
   <div class="tab-header-text">
+    <a href="{{ '/' | relative_url }}" class="yj-back-link">← 모든 시리즈</a>
     <h1 class="tab-clean-title">{{ include.title }}</h1>
     <p class="tab-clean-desc">{{ include.desc }}</p>
   </div>
 
+// + 글쓰기 버튼에 기본 d-none(숨김을 걸어두어 일반 방문자에게는 버튼 자체가 노출되지 않고, 관리자 인증상태일때만 숨김을 해제)
+  <!-- 관리자 인증 전에는 일반 방문자에게 보이지 않도록 기본 d-none 적용 -->
   <button
     type="button"
     id="tab-write-toggle"
-    class="tab-write-btn"
+    class="tab-write-btn d-none"
     aria-expanded="false"
     aria-controls="tab-writer-panel"
   >
@@ -220,6 +223,21 @@
 
 <style>
   /* 헤더 좌측 텍스트 + 우측 글쓰기 버튼 정렬 */
+  .yj-back-link {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    font-size: 0.86rem;
+    font-weight: 500;
+    color: #6b7684;
+    text-decoration: none;
+    border-bottom: none !important;
+    transition: color 0.15s ease;
+  }
+
+  .yj-back-link:hover {
+    color: #3182f6 !important;
+  }
+
   .tab-header-with-action {
     display: flex;
     align-items: flex-end;
@@ -592,10 +610,14 @@
     const downloadBtn = document.getElementById('tw-download-btn');
     const publishBtn = document.getElementById('tw-publish-btn');
 
-    // 저장된 토큰 불러오기
+    // 저장된 토큰 및 관리자 인증 상태 불러오기
     const savedToken = localStorage.getItem(TOKEN_KEY) || '';
+    const isAdmin = localStorage.getItem('sungashell_admin_verified') === 'true' && !!savedToken;
     if (ghTokenInput && savedToken) {
       ghTokenInput.value = savedToken;
+    }
+    if (isAdmin) {
+      toggleBtn.classList.remove('d-none');
     }
 
     function setStatus(msg, isError = false) {

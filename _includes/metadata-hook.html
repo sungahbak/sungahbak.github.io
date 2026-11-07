@@ -50,6 +50,18 @@
   .access > section:not(:first-child) {
     margin-top: 1.5rem !important;
   }
+
+// 포스트 Front Matter의 description(요약 리드문)이 본문 제목 아래에 렌더링될 때 border-left: 3px solid #3182f6가 적용되도록 지정한 부분입니다.
+  /* 포스트 상세 페이지 상단 요약문: yangjunman.com 스타일 좌측 포인트 보더 */
+  header .post-desc {
+    margin-top: 1.1rem !important;
+    padding-left: 0.95rem !important;
+    border-left: 3px solid #3182f6 !important;
+    font-size: 1rem !important;
+    line-height: 1.7 !important;
+    color: #4e5968 !important;
+    font-weight: 400 !important;
+  }
 </style>
 <script>
   if (document.title && document.title.includes('©sunga')) {

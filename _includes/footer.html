@@ -1,15 +1,17 @@
-<!-- 하단 푸터: 저작권 표시 + 외부 링크(GitHub, LinkedIn, Email, Threads) -->
+<!-- 하단 푸터: 저작권 표시 + 외부 링크(GitHub, LinkedIn, Email, Threads) + 관리자 전용 진입 링크 -->
 
 <footer
   aria-label="Site Info"
-  class="toss-footer d-flex flex-column flex-md-row justify-content-between align-items-center text-muted"
+  class="yj-footer d-flex flex-column flex-md-row justify-content-between align-items-center text-muted"
 >
   <div class="footer-left">
     <span>© {{ 'now' | date: '%Y' }}</span>
-    <a href="{{ '/' | relative_url }}" class="footer-brand">{% if site.title == '©sunga' %}sungashell{% else %}{{ site.title }}{% endif %}</a>
+    <a href="{{ '/' | relative_url }}" class="footer-brand">
+      {%- if site.title == '©sunga' -%}sungashell{%- else -%}{{ site.title }}{%- endif -%}
+    </a>
   </div>
 
-  <div class="footer-contacts d-flex align-items-center">
+  <nav class="footer-contacts d-flex align-items-center" aria-label="푸터 링크">
     {% for entry in site.data.contact %}
       {% assign url = entry.url %}
       {% if entry.type == 'github' and url == nil %}
@@ -31,16 +33,48 @@
         </a>
       {% endif %}
     {% endfor %}
-  </div>
+
+    <span class="footer-divider" aria-hidden="true"></span>
+
+    <!-- yangjunman.com/blog 처럼 푸터 우측 끝에 조용히 배치된 관리자 전용 버튼 -->
+    <button type="button" id="footer-admin-btn" class="footer-admin-link">
+      관리자
+    </button>
+  </nav>
 </footer>
 
+<!-- 관리자 인증 모달 (일반 방문자는 토큰이 없으므로 글쓰기 권한 획득 불가) -->
+<div id="admin-auth-modal" class="admin-modal-backdrop d-none" role="dialog" aria-modal="true" aria-labelledby="admin-modal-title">
+  <div class="admin-modal-card">
+    <div class="admin-modal-header">
+      <h3 id="admin-modal-title" class="admin-modal-title">관리자 인증</h3>
+      <button type="button" id="admin-modal-close" class="admin-modal-close" aria-label="닫기">&times;</button>
+    </div>
+    <p class="admin-modal-desc">
+      블로그 소유자(<code>sungahbak</code>)의 GitHub Personal Access Token을 입력하면 각 탭에서 글쓰기 버튼이 활성화됩니다.
+    </p>
+    <input
+      type="password"
+      id="admin-modal-token"
+      class="admin-modal-input"
+      placeholder="github_pat_... 또는 ghp_..."
+      autocomplete="off"
+    >
+    <p id="admin-modal-msg" class="admin-modal-msg"></p>
+    <div class="admin-modal-actions">
+      <button type="button" id="admin-logout-btn" class="admin-btn-secondary d-none">관리자 해제</button>
+      <button type="button" id="admin-verify-btn" class="admin-btn-primary">인증 및 활성화</button>
+    </div>
+  </div>
+</div>
+
 <style>
-  footer.toss-footer {
+  footer.yj-footer {
     height: auto;
-    min-height: 4.75rem;
-    padding: 1.4rem 0.25rem;
-    margin-top: 2.5rem;
-    border-top: 1px solid rgba(0, 27, 55, 0.07);
+    min-height: 4.25rem;
+    padding: 1.25rem 0.25rem;
+    margin-top: 3rem;
+    border-top: 1px solid #e5e8eb;
     background-color: transparent;
     gap: 0.75rem;
   }
@@ -49,13 +83,13 @@
     display: flex;
     align-items: center;
     gap: 0.35rem;
-    font-size: 0.86rem;
-    color: #8b95a1;
+    font-size: 0.85rem;
+    color: #6b7684;
   }
 
   .footer-brand {
     font-weight: 600;
-    color: #4e5968 !important;
+    color: #333d4b !important;
     text-decoration: none;
     border-bottom: none !important;
   }
@@ -65,28 +99,263 @@
   }
 
   .footer-contacts {
-    gap: 0.5rem;
+    gap: 0.45rem;
   }
 
   .footer-contact-link {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.2rem;
-    height: 2.2rem;
-    border-radius: 10px;
-    background-color: #f6f7f9;
-    color: #4e5968 !important;
-    font-size: 0.98rem;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 8px;
+    color: #6b7684 !important;
+    font-size: 0.95rem;
     text-decoration: none;
     border-bottom: none !important;
     transition: background-color 0.15s ease, color 0.15s ease;
   }
 
   .footer-contact-link:hover {
-    background-color: #e5e8eb;
+    background-color: #f2f4f6;
     color: #191f28 !important;
     border-bottom: none !important;
   }
+
+  .footer-divider {
+    width: 1px;
+    height: 14px;
+    background-color: #e5e8eb;
+    margin: 0 0.25rem;
+  }
+
+  .footer-admin-link {
+    border: none;
+    background: transparent;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.82rem;
+    color: #8b95a1;
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+
+  .footer-admin-link:hover,
+  .footer-admin-link.is-admin {
+    color: #191f28;
+    font-weight: 600;
+  }
+
+  /* 관리자 모달 스타일 */
+  .admin-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    background-color: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .admin-modal-card {
+    width: 100%;
+    max-width: 420px;
+    background-color: #ffffff;
+    border: 1px solid #e5e8eb;
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  }
+
+  .admin-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.6rem;
+  }
+
+  .admin-modal-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #191f28;
+  }
+
+  .admin-modal-close {
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: #8b95a1;
+    cursor: pointer;
+  }
+
+  .admin-modal-desc {
+    margin: 0 0 1rem;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: #6b7684;
+  }
+
+  .admin-modal-input {
+    width: 100%;
+    border: 1px solid #d1d6db;
+    border-radius: 10px;
+    padding: 0.6rem 0.85rem;
+    font-size: 0.9rem;
+    color: #191f28;
+    outline: none;
+  }
+
+  .admin-modal-input:focus {
+    border-color: #3182f6;
+    box-shadow: 0 0 0 3px rgba(49, 130, 246, 0.12);
+  }
+
+  .admin-modal-msg {
+    min-height: 1.25rem;
+    margin: 0.5rem 0 0;
+    font-size: 0.8rem;
+    color: #3182f6;
+  }
+
+  .admin-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.9rem;
+  }
+
+  .admin-btn-primary,
+  .admin-btn-secondary {
+    padding: 0.5rem 0.95rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .admin-btn-primary {
+    border: none;
+    background-color: #191f28;
+    color: #ffffff;
+  }
+
+  .admin-btn-primary:hover {
+    background-color: #333d4b;
+  }
+
+  .admin-btn-secondary {
+    border: 1px solid #d1d6db;
+    background-color: #ffffff;
+    color: #4e5968;
+  }
 </style>
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const TOKEN_KEY = 'sungashell_gh_pat';
+    const ADMIN_KEY = 'sungashell_admin_verified';
+    const REPO = 'sungahbak/sungahbak.github.io';
+
+    const adminBtn = document.getElementById('footer-admin-btn');
+    const modal = document.getElementById('admin-auth-modal');
+    const closeBtn = document.getElementById('admin-modal-close');
+    const tokenInput = document.getElementById('admin-modal-token');
+    const msgEl = document.getElementById('admin-modal-msg');
+    const verifyBtn = document.getElementById('admin-verify-btn');
+    const logoutBtn = document.getElementById('admin-logout-btn');
+
+    function syncAdminUI() {
+      const isAdmin = localStorage.getItem(ADMIN_KEY) === 'true' && !!localStorage.getItem(TOKEN_KEY);
+      if (adminBtn) {
+        adminBtn.textContent = isAdmin ? '관리자 (활성)' : '관리자';
+        adminBtn.classList.toggle('is-admin', isAdmin);
+      }
+      if (logoutBtn) {
+        logoutBtn.classList.toggle('d-none', !isAdmin);
+      }
+      const writeToggle = document.getElementById('tab-write-toggle');
+      if (writeToggle) {
+        writeToggle.classList.toggle('d-none', !isAdmin);
+      }
+      if (!isAdmin) {
+        document.getElementById('tab-writer-panel')?.classList.add('d-none');
+      }
+    }
+
+    syncAdminUI();
+
+    adminBtn?.addEventListener('click', () => {
+      tokenInput.value = localStorage.getItem(TOKEN_KEY) || '';
+      msgEl.textContent = '';
+      modal.classList.remove('d-none');
+      tokenInput.focus();
+    });
+
+    closeBtn?.addEventListener('click', () => {
+      modal.classList.add('d-none');
+    });
+
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal) modal.classList.add('d-none');
+    });
+
+    logoutBtn?.addEventListener('click', () => {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(ADMIN_KEY);
+      syncAdminUI();
+      modal.classList.add('d-none');
+    });
+
+    verifyBtn?.addEventListener('click', async () => {
+      const token = tokenInput.value.trim();
+      if (!token) {
+        msgEl.style.color = '#f04452';
+        msgEl.textContent = 'GitHub Personal Access Token을 입력해 주세요.';
+        return;
+      }
+
+      verifyBtn.disabled = true;
+      msgEl.style.color = '#3182f6';
+      msgEl.textContent = '저장소 쓰기 권한 확인 중...';
+
+// 푸터 우측 끝 관리자 버튼 클릭 시 입력한 github 토큰으로 GET /repos/sungahbak.github.io를 호출해 저장소 쓰기 권한
+//있는지 확인하고, 통과했을때만 localstorage에 관리자 인증을 활성화합니다.
+      try {
+        // GitHub API로 해당 토큰이 실제 내 저장소(sungahbak.github.io)에 push 권한이 있는지 검증
+        const res = await fetch(`https://api.github.com/repos/${REPO}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/vnd.github+json'
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error('유효하지 않은 토큰입니다.');
+        }
+
+        const repoData = await res.json();
+        if (!repoData.permissions || !repoData.permissions.push) {
+          throw new Error('저장소 쓰기(push) 권한이 없는 토큰입니다.');
+        }
+
+        localStorage.setItem(TOKEN_KEY, token);
+        localStorage.setItem(ADMIN_KEY, 'true');
+        const ghTokenField = document.getElementById('tw-gh-token');
+        if (ghTokenField) ghTokenField.value = token;
+
+        syncAdminUI();
+        msgEl.style.color = '#0ca678';
+        msgEl.textContent = '관리자 인증 완료! 이제 탭 상단에서 글쓰기가 가능합니다.';
+        setTimeout(() => modal.classList.add('d-none'), 700);
+      } catch (err) {
+        msgEl.style.color = '#f04452';
+        msgEl.textContent = err.message || '인증에 실패했습니다.';
+      } finally {
+        verifyBtn.disabled = false;
+      }
+    });
+  });
+</script>
