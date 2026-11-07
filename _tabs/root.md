@@ -16,12 +16,30 @@ order: 2
 {% endfor %}
 
 <div class="tab-page-wrap px-xl-1">
-  <!-- 상단 타이틀 + 우측 글쓰기 버튼 및 인라인 에디터 -->
+  <!-- 상단 타이틀 + 관리자 인증 시에만 보이는 글쓰기 버튼 및 인라인 에디터 -->
   {% include tab-writer.html
     tab_id="root"
     title="root · 개념"
-    desc="기술의 핵심 개념을 뿌리부터 차근차근 이해해 보세요."
+    desc="기술의 핵심 개념을 뿌리부터 차근차근 이해하고 정리한 기록입니다."
   %}
+
+  <!-- yangjunman.com/blog 시리즈 페이지 스타일: 글 개수 + 인라인 검색 바 -->
+  <div class="yj-tab-toolbar">
+    <p class="yj-tab-count"><strong id="tab-visible-count">{{ root_posts.size }}</strong>개의 글</p>
+    <div class="yj-tab-search">
+      <label for="tab-search-input" class="visually-hidden">글 검색</label>
+      <input
+        id="tab-search-input"
+        type="search"
+        placeholder="글 검색..."
+        class="yj-tab-search-input"
+        autocomplete="off"
+      >
+      <span class="yj-tab-search-icon" aria-hidden="true">
+        <i class="fas fa-search"></i>
+      </span>
+    </div>
+  </div>
 
   <div id="root-post-list" class="home-post-list">
     {% for post in root_posts %}
@@ -44,20 +62,22 @@ order: 2
 
       <article class="home-post-card tab-filter-card" data-fields="{{ field_data }}">
         <a href="{{ post.url | relative_url }}" class="home-post-link">
+          <div class="home-post-body">
+            <h2 class="home-post-title">{{ post.title }}</h2>
+            <p class="home-post-summary">{% include post-summary.html %}</p>
+          </div>
+
           <div class="home-post-meta">
             <span class="hp-tab">root</span>
-            <span class="hp-sep">/</span>
+            <span class="hp-dot">·</span>
             <span class="hp-field">{{ field_name }}</span>
-            <span class="hp-sep">/</span>
+            <span class="hp-dot">·</span>
             <time class="hp-date" datetime="{{ post.date | date_to_xmlschema }}">
               {{- post.date | date: '%Y. %m. %d' -}}
             </time>
             <span class="hp-dot">·</span>
             <span class="hp-read">{{ read_min }}분 읽기</span>
           </div>
-
-          <h2 class="home-post-title">{{ post.title }}</h2>
-          <p class="home-post-summary">{% include post-summary.html %}</p>
         </a>
       </article>
     {% endfor %}
@@ -76,23 +96,78 @@ order: 2
   }
 
   .tab-clean-header {
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.5rem;
     padding: 0 0.15rem;
   }
 
   .tab-clean-title {
     margin: 0 0 0.45rem;
-    font-size: 1.7rem;
+    font-size: 1.85rem;
     font-weight: 700;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.035em;
     color: #191f28;
   }
 
   .tab-clean-desc {
     margin: 0;
-    font-size: 0.98rem;
+    font-size: 0.96rem;
     color: #6b7684;
-    line-height: 1.55;
+    line-height: 1.6;
+  }
+
+  .yj-tab-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    padding-bottom: 1.15rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e8eb;
+  }
+
+  .yj-tab-count {
+    margin: 0;
+    font-size: 0.88rem;
+    color: #6b7684;
+  }
+
+  .yj-tab-count strong {
+    color: #191f28;
+    font-weight: 600;
+  }
+
+  .yj-tab-search {
+    position: relative;
+    width: 100%;
+    max-width: 250px;
+  }
+
+  .yj-tab-search-input {
+    width: 100%;
+    height: 2.35rem;
+    padding: 0 2.2rem 0 0.85rem;
+    border: 1px solid #e5e8eb;
+    border-radius: 6px;
+    background-color: #ffffff;
+    font-size: 0.86rem;
+    color: #191f28;
+    outline: none;
+  }
+
+  .yj-tab-search-input:focus {
+    border-color: #3182f6;
+    box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.12);
+  }
+
+  .yj-tab-search-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    color: #8b95a1;
+    pointer-events: none;
   }
 
   .home-post-list {
@@ -103,55 +178,29 @@ order: 2
 
   .home-post-card {
     background-color: #ffffff;
-    border: 1px solid rgba(0, 27, 55, 0.06);
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0, 27, 55, 0.04), 0 1px 2px rgba(0, 27, 55, 0.02);
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    border: 1px solid #e5e8eb;
+    border-radius: 12px;
+    transition: border-color 0.22s ease, box-shadow 0.22s ease;
   }
 
   .home-post-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(49, 130, 246, 0.2);
-    box-shadow: 0 8px 24px rgba(0, 27, 55, 0.07);
+    border-color: rgba(25, 31, 40, 0.35);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
   }
 
   .home-post-link {
-    display: block;
-    padding: 1.5rem 1.7rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.35rem 1.5rem;
     text-decoration: none;
     color: inherit;
     border-bottom: none !important;
   }
 
-  .home-post-meta {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    margin-bottom: 0.6rem;
-    font-size: 0.84rem;
-    line-height: 1.4;
-    color: #8b95a1;
-  }
-
-  .home-post-meta .hp-tab {
-    font-weight: 600;
-    color: #3182f6;
-  }
-
-  .home-post-meta .hp-field {
-    font-weight: 500;
-    color: #4e5968;
-  }
-
-  .home-post-meta .hp-sep,
-  .home-post-meta .hp-dot {
-    color: #d1d6db;
-  }
-
   .home-post-title {
-    margin: 0 0 0.45rem;
-    font-size: 1.25rem;
+    margin: 0;
+    font-size: 1.15rem;
     font-weight: 700;
     line-height: 1.42;
     letter-spacing: -0.025em;
@@ -164,10 +213,39 @@ order: 2
   }
 
   .home-post-summary {
-    margin: 0;
-    font-size: 0.94rem;
-    line-height: 1.62;
-    color: #4e5968;
+    margin: 0.5rem 0 0;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: #6b7684;
+  }
+
+  .home-post-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.9rem;
+    font-size: 0.78rem;
+    color: #8b95a1;
+  }
+
+  .home-post-meta .hp-tab {
+    font-weight: 700;
+    color: #333d4b;
+  }
+
+  .home-post-meta .hp-field {
+    font-weight: 600;
+    color: #3182f6;
+  }
+
+  .home-post-meta .hp-dot {
+    color: #d1d6db;
+  }
+
+  .home-post-meta .hp-read {
+    font-weight: 500;
+    color: #6b7684;
   }
 
   .tab-empty-msg {
@@ -225,20 +303,25 @@ order: 2
     const cards = Array.from(document.querySelectorAll('.tab-filter-card'));
     const emptyMsg = document.getElementById('tab-empty-msg');
     const paginationEl = document.getElementById('tab-pagination');
+    const searchInput = document.getElementById('tab-search-input');
+    const countEl = document.getElementById('tab-visible-count');
 
     let activeFields = [];
+    let searchQuery = '';
     let currentPage = 1;
 
     function getFiltered() {
-      if (activeFields.length === 0) return cards;
       return cards.filter((card) => {
         const fields = (card.dataset.fields || '').split('|').map((s) => s.trim());
-        return fields.some((f) => activeFields.includes(f));
+        const fieldMatch = activeFields.length === 0 || fields.some((f) => activeFields.includes(f));
+        const textMatch = !searchQuery || card.textContent.toLowerCase().includes(searchQuery);
+        return fieldMatch && textMatch;
       });
     }
 
     function render() {
       const filtered = getFiltered();
+      if (countEl) countEl.textContent = String(filtered.length);
       const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
       if (currentPage > totalPages) currentPage = 1;
 
@@ -275,6 +358,12 @@ order: 2
 
     window.addEventListener('fieldFilterChange', (e) => {
       activeFields = e.detail.selectedFields || [];
+      currentPage = 1;
+      render();
+    });
+
+    searchInput?.addEventListener('input', () => {
+      searchQuery = searchInput.value.trim().toLowerCase();
       currentPage = 1;
       render();
     });

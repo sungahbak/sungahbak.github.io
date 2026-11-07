@@ -7,6 +7,23 @@ layout: default
 {% assign all_pinned = site.posts | where: 'pin', 'true' %}
 {% assign all_normal = site.posts | where_exp: 'item', 'item.pin != true and item.hidden != true' %}
 
+// EXPLORE. 시리즈별로 살펴보기 3열 카드에 표시할 각 탭의 글 개수를 liquid로 집계하는 부분입니다.
+<!-- 시리즈별(syslog / root / stdout) 글 개수 집계 -->
+{% assign syslog_count = 0 %}
+{% assign root_count = 0 %}
+{% for p in site.posts %}
+  {% if p.hidden != true %}
+    {% assign f_cat = p.categories[0] | downcase %}
+    {% if f_cat == 'root' or p.tags contains '개념' or p.tags contains 'root' %}
+      {% assign root_count = root_count | plus: 1 %}
+    {% else %}
+      {% assign syslog_count = syslog_count | plus: 1 %}
+    {% endif %}
+  {% endif %}
+{% endfor %}
+{% assign stdout_count = site.data.stdout | size %}
+{% assign total_post_count = site.posts | where_exp: 'item', 'item.hidden != true' | size %}
+
 {% assign posts = '' | split: '' %}
 
 {% if paginator %}
@@ -48,206 +65,494 @@ layout: default
   {% assign posts = site.posts | where_exp: 'item', 'item.hidden != true' | slice: 0, 6 %}
 {% endif %}
 
-<!-- 페이지당 최대 6개 글 목록 (토스 기술블로그 카드 스타일) -->
-<div id="post-list" class="home-post-list flex-grow-1 px-xl-1">
-  {% for post in posts %}
-    {% assign first_cat = post.categories[0] | downcase %}
-    {% if first_cat == 'syslog' or first_cat == 'root' or first_cat == 'stdout' %}
-      {% assign tab_name = first_cat %}
-      {% assign field_list = post.categories | slice: 1, post.categories.size %}
-    {% else %}
-      {% if post.tags contains '개념' or post.tags contains 'root' %}
-        {% assign tab_name = 'root' %}
-      {% else %}
-        {% assign tab_name = 'syslog' %}
-      {% endif %}
-      {% assign field_list = post.categories %}
-    {% endif %}
-    {% if field_list.size > 0 %}
-      {% assign field_name = field_list | join: ' · ' %}
-    {% else %}
-      {% assign field_name = '일반' %}
-    {% endif %}
+<div class="yj-publication-page px-xl-1">
+  <!-- 1. 상단 블로그 헤더 (yangjunman.com/blog 스타일) -->
+  <header class="yj-pub-header">
+    <p class="yj-pub-eyebrow">SUNGASHELL · BLOG</p>
+    <h1 class="yj-pub-title">만들고, 해결하고, 기록합니다.</h1>
+    <p class="yj-pub-desc">인프라와 클라우드를 직접 다루며 마주한 문제와 배움을 남깁니다.</p>
+  </header>
 
-    {% assign words = post.content | strip_html | number_of_words %}
-    {% assign read_min = words | divided_by: 180 | at_least: 1 %}
+  <!-- 2. 글 개수 + 우측 인라인 검색 바 -->
+  <div class="yj-toolbar-row">
+    <p class="yj-total-count"><strong id="home-visible-count">{{ total_post_count }}</strong>개의 글</p>
+    <div class="yj-search-box">
+      <label for="home-inline-search" class=" visually-hidden">글 검색</label>
+      <input
+        id="home-inline-search"
+        type="search"
+        placeholder="글 검색..."
+        class="yj-search-input"
+        autocomplete="off"
+      >
+      <span class="yj-search-icon" aria-hidden="true">
+        <i class="fas fa-search"></i>
+      </span>
+    </div>
+  </div>
 
-    <article class="home-post-card">
-      <a href="{{ post.url | relative_url }}" class="home-post-link">
-        <!-- 제일 위: 탭이름 / 분야 / 날짜 · 몇분 읽기 -->
-        <div class="home-post-meta">
-          <span class="hp-tab">{{ tab_name }}</span>
-          <span class="hp-sep">/</span>
-          <span class="hp-field">{{ field_name }}</span>
-          <span class="hp-sep">/</span>
-          <time class="hp-date" datetime="{{ post.date | date_to_xmlschema }}">
-            {{- post.date | date: '%Y. %m. %d' -}}
-          </time>
-          <span class="hp-dot">·</span>
-          <span class="hp-read">{{ read_min }}분 읽기</span>
+  <!-- 3. EXPLORE: 시리즈별로 살펴보기 (syslog, root, stdout 3열 그리드) -->
+  <section class="yj-series-section" aria-labelledby="series-title">
+    <div class="yj-section-head">
+      <p class="yj-section-eyebrow">EXPLORE</p>
+      <h2 id="series-title" class="yj-section-title">시리즈별로 살펴보기</h2>
+      <p class="yj-section-sub">관심 있는 주제를 선택하면 관련 글을 모아 볼 수 있습니다.</p>
+    </div>
+
+    <div class="yj-series-grid">
+      <a href="{{ '/syslog/' | relative_url }}" class="yj-series-card">
+        <div class="yj-series-thumb yj-thumb-syslog">
+          <span class="yj-thumb-tag">syslog · 트러블슈팅</span>
+          <span class="yj-thumb-quote">장애 증상부터 근본 원인까지 직접 추적하고 해결한 기록</span>
+          <span class="yj-thumb-foot">sungashell의 기록</span>
         </div>
-
-        <!-- 그 아래: 제목 -->
-        <h2 class="home-post-title">{{ post.title }}</h2>
-
-        <!-- 그 아래: 세부사항(요약) -->
-        <p class="home-post-summary">{% include post-summary.html %}</p>
+        <div class="yj-series-meta">
+          <h3 class="yj-series-name">syslog</h3>
+          <span class="yj-series-count">{{ syslog_count }}개의 글</span>
+        </div>
+        <p class="yj-series-desc">시스템의 원리를 이해하고 문제를 해결한 기록</p>
       </a>
-    </article>
-  {% endfor %}
+
+      <a href="{{ '/root/' | relative_url }}" class="yj-series-card">
+        <div class="yj-series-thumb yj-thumb-root">
+          <span class="yj-thumb-tag">root · 개념과 원리</span>
+          <span class="yj-thumb-quote">도구의 화려함보다 운영체제·네트워크·클라우드 기본기</span>
+          <span class="yj-thumb-foot">sungashell의 기록</span>
+        </div>
+        <div class="yj-series-meta">
+          <h3 class="yj-series-name">root</h3>
+          <span class="yj-series-count">{{ root_count }}개의 글</span>
+        </div>
+        <p class="yj-series-desc">기술의 핵심 개념을 뿌리부터 차근차근 정리한 기록</p>
+      </a>
+
+      <a href="{{ '/stdout/' | relative_url }}" class="yj-series-card">
+        <div class="yj-series-thumb yj-thumb-stdout">
+          <span class="yj-thumb-tag">stdout · 잡학 IT 지식</span>
+          <span class="yj-thumb-quote">실습과 운영 중 건져 올린 짧고 쓸모 있는 한 줄 명령어와 지식</span>
+          <span class="yj-thumb-foot">sungashell의 기록</span>
+        </div>
+        <div class="yj-series-meta">
+          <h3 class="yj-series-name">stdout</h3>
+          <span class="yj-series-count">{{ stdout_count }}개의 기록</span>
+        </div>
+        <p class="yj-series-desc">알아두면 쓸모 있는 IT 지식을 한 줄씩 남긴 공간</p>
+      </a>
+    </div>
+  </section>
+
+  <!-- 4. START HERE: 최근 글 목록 (제목 + 2~3줄 요약 + 하단 탭 · 분야 · 날짜 · N분 읽기) -->
+  <section class="yj-featured-section" aria-labelledby="featured-title">
+    <div class="yj-section-head">
+      <p class="yj-section-eyebrow">START HERE</p>
+      <h2 id="featured-title" class="yj-section-title">먼저 보기 좋은 글</h2>
+      <p class="yj-section-sub">클라우드·인프라 실습과 프로젝트에서 직접 겪고 검증한 기록입니다.</p>
+    </div>
+
+    <div id="post-list" class="home-post-list">
+      {% for post in posts %}
+        {% assign first_cat = post.categories[0] | downcase %}
+        {% if first_cat == 'syslog' or first_cat == 'root' or first_cat == 'stdout' %}
+          {% assign tab_name = first_cat %}
+          {% assign field_list = post.categories | slice: 1, post.categories.size %}
+        {% else %}
+          {% if post.tags contains '개념' or post.tags contains 'root' %}
+            {% assign tab_name = 'root' %}
+          {% else %}
+            {% assign tab_name = 'syslog' %}
+          {% endif %}
+          {% assign field_list = post.categories %}
+        {% endif %}
+        {% if field_list.size > 0 %}
+          {% assign field_name = field_list | join: ' · ' %}
+        {% else %}
+          {% assign field_name = '일반' %}
+        {% endif %}
+
+// post.content | strip_html | number_of_words | divided_by: 180 | at_least: 1로 HTML 태그를 제외한 순수 단어 수를 분당 180단어로 나누어 N분 읽기를 계산합니다.
+        <!-- 본문 단어 수 기반 읽기 소요 시간 계산 (분당 180단어 기준, 최소 1분) -->
+        {% assign words = post.content | strip_html | number_of_words %}
+        {% assign read_min = words | divided_by: 180 | at_least: 1 %}
+
+        <article class="home-post-card">
+          <a href="{{ post.url | relative_url }}" class="home-post-link">
+            <div class="home-post-body">
+              <h3 class="home-post-title">{{ post.title }}</h3>
+              <p class="home-post-summary">{% include post-summary.html %}</p>
+            </div>
+
+            <!-- 하단 메타 줄: 시리즈(탭) · 분야 · 날짜 · N분 읽기 -->
+            <div class="home-post-meta">
+              <span class="hp-tab">{{ tab_name }}</span>
+              <span class="hp-dot">·</span>
+              <span class="hp-field">{{ field_name }}</span>
+              <span class="hp-dot">·</span>
+              <time class="hp-date" datetime="{{ post.date | date_to_xmlschema }}">
+                {{- post.date | date: '%Y. %m. %d' -}}
+              </time>
+              <span class="hp-dot">·</span>
+              <span class="hp-read">{{ read_min }}분 읽기</span>
+            </div>
+          </a>
+        </article>
+      {% endfor %}
+    </div>
+
+    <p id="home-search-empty" class="yj-empty-msg d-none">
+      검색어와 일치하는 글이 없습니다.
+    </p>
+  </section>
+
+  <!-- 하단 페이지네이션 (< 1 2 3 4 ... >) -->
+  {% assign cur_page = paginator.page | default: 1 %}
+  {% assign total_pages = paginator.total_pages | default: 1 %}
+  {% assign pag_pattern = site.paginate_path | default: '/page:num/' %}
+
+  <nav class="home-pagination" aria-label="페이지 탐색">
+    {% if paginator.previous_page %}
+      <a
+        href="{{ paginator.previous_page_path | relative_url }}"
+        class="hp-page-btn hp-arrow"
+        aria-label="이전 페이지"
+      >&lt;</a>
+    {% else %}
+      <span class="hp-page-btn hp-arrow disabled" aria-disabled="true">&lt;</span>
+    {% endif %}
+
+    {% assign left_edge = cur_page | minus: 2 %}
+    {% assign right_edge = cur_page | plus: 2 %}
+    {% assign show_left_ellipsis = false %}
+    {% assign show_right_ellipsis = false %}
+
+    {% if total_pages > 7 %}
+      {% if left_edge > 2 %}
+        {% assign show_left_ellipsis = true %}
+      {% endif %}
+      {% assign penultimate = total_pages | minus: 1 %}
+      {% if right_edge < penultimate %}
+        {% assign show_right_ellipsis = true %}
+      {% endif %}
+    {% endif %}
+
+    {% for p in (1..total_pages) %}
+      {% assign show_page = false %}
+      {% if total_pages <= 7 %}
+        {% assign show_page = true %}
+      {% elsif p == 1 or p == total_pages %}
+        {% assign show_page = true %}
+      {% elsif p >= left_edge and p <= right_edge %}
+        {% assign show_page = true %}
+      {% elsif p == 2 and show_left_ellipsis == false %}
+        {% assign show_page = true %}
+      {% else %}
+        {% assign penultimate = total_pages | minus: 1 %}
+        {% if p == penultimate and show_right_ellipsis == false %}
+          {% assign show_page = true %}
+        {% endif %}
+      {% endif %}
+
+      {% if show_page %}
+        {% if p == 1 %}
+          {% assign p_url = '/' | relative_url %}
+        {% else %}
+          {% assign p_url = pag_pattern | replace: ':num', p | relative_url %}
+        {% endif %}
+
+        {% if p == cur_page %}
+          <span class="hp-page-btn active" aria-current="page">{{ p }}</span>
+        {% else %}
+          <a href="{{ p_url }}" class="hp-page-btn">{{ p }}</a>
+        {% endif %}
+      {% elsif p == 2 and show_left_ellipsis %}
+        <span class="hp-page-ellipsis">…</span>
+      {% else %}
+        {% assign penultimate = total_pages | minus: 1 %}
+        {% if p == penultimate and show_right_ellipsis %}
+          <span class="hp-page-ellipsis">…</span>
+        {% endif %}
+      {% endif %}
+    {% endfor %}
+
+    {% if paginator.next_page %}
+      <a
+        href="{{ paginator.next_page_path | relative_url }}"
+        class="hp-page-btn hp-arrow"
+        aria-label="다음 페이지"
+      >&gt;</a>
+    {% else %}
+      <span class="hp-page-btn hp-arrow disabled" aria-disabled="true">&gt;</span>
+    {% endif %}
+  </nav>
 </div>
 
-<!-- 하단 페이지네이션 (< 1 2 3 4 ... >) -->
-{% assign cur_page = paginator.page | default: 1 %}
-{% assign total_pages = paginator.total_pages | default: 1 %}
-{% assign pag_pattern = site.paginate_path | default: '/page:num/' %}
-
-<nav class="home-pagination px-xl-1" aria-label="페이지 탐색">
-  {% if paginator.previous_page %}
-    <a
-      href="{{ paginator.previous_page_path | relative_url }}"
-      class="hp-page-btn hp-arrow"
-      aria-label="이전 페이지"
-    >&lt;</a>
-  {% else %}
-    <span class="hp-page-btn hp-arrow disabled" aria-disabled="true">&lt;</span>
-  {% endif %}
-
-  {% assign left_edge = cur_page | minus: 2 %}
-  {% assign right_edge = cur_page | plus: 2 %}
-  {% assign show_left_ellipsis = false %}
-  {% assign show_right_ellipsis = false %}
-
-  {% if total_pages > 7 %}
-    {% if left_edge > 2 %}
-      {% assign show_left_ellipsis = true %}
-    {% endif %}
-    {% assign penultimate = total_pages | minus: 1 %}
-    {% if right_edge < penultimate %}
-      {% assign show_right_ellipsis = true %}
-    {% endif %}
-  {% endif %}
-
-  {% for p in (1..total_pages) %}
-    {% assign show_page = false %}
-    {% if total_pages <= 7 %}
-      {% assign show_page = true %}
-    {% elsif p == 1 or p == total_pages %}
-      {% assign show_page = true %}
-    {% elsif p >= left_edge and p <= right_edge %}
-      {% assign show_page = true %}
-    {% elsif p == 2 and show_left_ellipsis == false %}
-      {% assign show_page = true %}
-    {% else %}
-      {% assign penultimate = total_pages | minus: 1 %}
-      {% if p == penultimate and show_right_ellipsis == false %}
-        {% assign show_page = true %}
-      {% endif %}
-    {% endif %}
-
-    {% if show_page %}
-      {% if p == 1 %}
-        {% assign p_url = '/' | relative_url %}
-      {% else %}
-        {% assign p_url = pag_pattern | replace: ':num', p | relative_url %}
-      {% endif %}
-
-      {% if p == cur_page %}
-        <span class="hp-page-btn active" aria-current="page">{{ p }}</span>
-      {% else %}
-        <a href="{{ p_url }}" class="hp-page-btn">{{ p }}</a>
-      {% endif %}
-    {% elsif p == 2 and show_left_ellipsis %}
-      <span class="hp-page-ellipsis">…</span>
-    {% else %}
-      {% assign penultimate = total_pages | minus: 1 %}
-      {% if p == penultimate and show_right_ellipsis %}
-        <span class="hp-page-ellipsis">…</span>
-      {% endif %}
-    {% endif %}
-  {% endfor %}
-
-  {% if paginator.next_page %}
-    <a
-      href="{{ paginator.next_page_path | relative_url }}"
-      class="hp-page-btn hp-arrow"
-      aria-label="다음 페이지"
-    >&gt;</a>
-  {% else %}
-    <span class="hp-page-btn hp-arrow disabled" aria-disabled="true">&gt;</span>
-  {% endif %}
-</nav>
-
 <style>
-  .home-post-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+  .yj-publication-page {
     margin-top: 1.75rem;
   }
 
-  .home-post-card {
+  /* 1. 상단 헤더 */
+  .yj-pub-header {
+    padding-bottom: 2.2rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e5e8eb;
+  }
+
+  .yj-pub-eyebrow {
+    margin: 0 0 0.9rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #3182f6;
+  }
+
+  .yj-pub-title {
+    margin: 0;
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.32;
+    letter-spacing: -0.04em;
+    color: #191f28;
+  }
+
+  .yj-pub-desc {
+    margin: 0.7rem 0 0;
+    font-size: 0.96rem;
+    line-height: 1.65;
+    color: #6b7684;
+  }
+
+  /* 2. 글 개수 + 검색 바 */
+  .yj-toolbar-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid #e5e8eb;
+  }
+
+  .yj-total-count {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6b7684;
+  }
+
+  .yj-total-count strong {
+    color: #191f28;
+    font-weight: 600;
+  }
+
+  .yj-search-box {
+    position: relative;
+    width: 100%;
+    max-width: 260px;
+  }
+
+  .yj-search-input {
+    width: 100%;
+    height: 2.4rem;
+    padding: 0 2.25rem 0 0.85rem;
+    border: 1px solid #e5e8eb;
+    border-radius: 6px;
     background-color: #ffffff;
-    border: 1px solid rgba(0, 27, 55, 0.06);
-    border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(0, 27, 55, 0.04), 0 1px 2px rgba(0, 27, 55, 0.02);
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    font-size: 0.88rem;
+    color: #191f28;
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
   }
 
-  .home-post-card:hover {
-    transform: translateY(-2px);
-    border-color: rgba(49, 130, 246, 0.2);
-    box-shadow: 0 8px 24px rgba(0, 27, 55, 0.07);
+  .yj-search-input:focus {
+    border-color: #3182f6;
+    box-shadow: 0 0 0 2px rgba(49, 130, 246, 0.12);
   }
 
-  .home-post-link {
+  .yj-search-icon {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.82rem;
+    color: #8b95a1;
+    pointer-events: none;
+  }
+
+  /* 3. EXPLORE 시리즈 3열 그리드 */
+  .yj-series-section {
+    padding: 2.5rem 0 1rem;
+  }
+
+  .yj-section-head {
+    margin-bottom: 1.4rem;
+  }
+
+  .yj-section-eyebrow {
+    margin: 0;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #3182f6;
+  }
+
+  .yj-section-title {
+    margin: 0.35rem 0 0;
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #191f28;
+  }
+
+  .yj-section-sub {
+    margin: 0.35rem 0 0;
+    font-size: 0.88rem;
+    color: #6b7684;
+  }
+
+  .yj-series-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 767px) {
+    .yj-series-grid {
+      grid-template-columns: 1fr;
+    }
+    .yj-pub-title {
+      font-size: 1.75rem;
+    }
+    .yj-search-box {
+      max-width: 100%;
+    }
+  }
+
+  .yj-series-card {
     display: block;
-    padding: 1.5rem 1.7rem;
     text-decoration: none;
     color: inherit;
     border-bottom: none !important;
   }
 
-  .home-post-link:hover {
-    border-bottom: none !important;
-  }
-
-  /* 1줄: 탭이름 / 분야 / 날짜 · 몇분 읽기 */
-  .home-post-meta {
+  .yj-series-thumb {
     display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-    margin-bottom: 0.6rem;
-    font-size: 0.84rem;
-    line-height: 1.4;
-    color: #8b95a1;
+    flex-direction: column;
+    justify-content: space-between;
+    aspect-ratio: 16 / 10;
+    padding: 1.15rem 1.25rem;
+    border-radius: 6px;
+    border: 1px solid #e5e8eb;
+    background-color: #f8fafc;
+    transition: transform 0.22s ease, border-color 0.22s ease;
   }
 
-  .home-post-meta .hp-tab {
-    font-weight: 600;
+  .yj-thumb-syslog {
+    background: linear-gradient(145deg, #f2f7ff 0%, #f8fafc 100%);
+  }
+
+  .yj-thumb-root {
+    background: linear-gradient(145deg, #f3faf6 0%, #f8fafc 100%);
+  }
+
+  .yj-thumb-stdout {
+    background: linear-gradient(145deg, #f6f7f9 0%, #ffffff 100%);
+  }
+
+  .yj-series-card:hover .yj-series-thumb {
+    transform: translateY(-2px);
+    border-color: rgba(25, 31, 40, 0.28);
+  }
+
+  .yj-thumb-tag {
+    font-size: 0.74rem;
+    font-weight: 700;
     color: #3182f6;
   }
 
-  .home-post-meta .hp-field {
-    font-weight: 500;
-    color: #4e5968;
+  .yj-thumb-quote {
+    font-size: 0.96rem;
+    font-weight: 600;
+    line-height: 1.42;
+    color: #191f28;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
-  .home-post-meta .hp-sep,
-  .home-post-meta .hp-dot {
-    color: #d1d6db;
-  }
-
-  .home-post-meta .hp-date,
-  .home-post-meta .hp-read {
+  .yj-thumb-foot {
+    font-size: 0.74rem;
     color: #8b95a1;
   }
 
-  /* 2줄: 제목 */
+  .yj-series-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+  }
+
+  .yj-series-name {
+    margin: 0;
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: #191f28;
+    transition: color 0.15s ease;
+  }
+
+  .yj-series-card:hover .yj-series-name {
+    color: #3182f6;
+  }
+
+  .yj-series-count {
+    font-size: 0.76rem;
+    color: #8b95a1;
+    flex-shrink: 0;
+  }
+
+  .yj-series-desc {
+    margin: 0.25rem 0 0;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: #6b7684;
+  }
+
+  /* 4. START HERE 포스트 카드 리스트 (yangjunman.com/blog 스타일) */
+  .yj-featured-section {
+    margin-top: 2.75rem;
+  }
+
+  .home-post-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .home-post-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e8eb;
+    border-radius: 12px;
+    transition: border-color 0.22s ease, box-shadow 0.22s ease;
+  }
+
+  .home-post-card:hover {
+    border-color: rgba(25, 31, 40, 0.35);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  }
+
+  .home-post-link {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 1.35rem 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: none !important;
+  }
+
   .home-post-title {
-    margin: 0 0 0.45rem;
-    font-size: 1.25rem;
+    margin: 0;
+    font-size: 1.15rem;
     font-weight: 700;
     line-height: 1.42;
     letter-spacing: -0.025em;
@@ -263,20 +568,54 @@ layout: default
     color: #3182f6;
   }
 
-  /* 3줄: 세부사항(요약) */
   .home-post-summary {
-    margin: 0;
-    font-size: 0.94rem;
-    line-height: 1.62;
-    letter-spacing: -0.015em;
-    color: #4e5968;
+    margin: 0.5rem 0 0;
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: #6b7684;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
-  /* 하단 페이지네이션 (< 1 2 3 4 ... >) */
+  /* 하단 메타: 탭 · 분야 · 날짜 · N분 읽기 */
+  .home-post-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 0.9rem;
+    font-size: 0.78rem;
+    color: #8b95a1;
+  }
+
+  .home-post-meta .hp-tab {
+    font-weight: 700;
+    color: #333d4b;
+  }
+
+  .home-post-meta .hp-field {
+    font-weight: 600;
+    color: #3182f6;
+  }
+
+  .home-post-meta .hp-dot {
+    color: #d1d6db;
+  }
+
+  .home-post-meta .hp-read {
+    font-weight: 500;
+    color: #6b7684;
+  }
+
+  .yj-empty-msg {
+    padding: 2rem 0.25rem;
+    font-size: 0.92rem;
+    color: #8b95a1;
+  }
+
+  /* 하단 페이지네이션 */
   .home-pagination {
     display: flex;
     align-items: center;
@@ -318,27 +657,27 @@ layout: default
     color: #d1d6db;
     cursor: default;
   }
-
-  .hp-page-ellipsis {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 1.75rem;
-    height: 2.2rem;
-    color: #8b95a1;
-  }
-
-  @media (max-width: 575px) {
-    .home-post-link {
-      padding: 1.25rem 1.3rem;
-    }
-
-    .home-post-title {
-      font-size: 1.12rem;
-    }
-
-    .home-post-summary {
-      font-size: 0.9rem;
-    }
-  }
 </style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('home-inline-search');
+    const cards = Array.from(document.querySelectorAll('#post-list .home-post-card'));
+    const emptyEl = document.getElementById('home-search-empty');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      let visible = 0;
+      cards.forEach((card) => {
+        const text = card.textContent.toLowerCase();
+        const match = !q || text.includes(q);
+        card.classList.toggle('d-none', !match);
+        if (match) visible++;
+      });
+      if (emptyEl) {
+        emptyEl.classList.toggle('d-none', visible > 0);
+      }
+    });
+  });
+</script>
